@@ -6,6 +6,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -14,15 +16,17 @@ import AuthTabSwitcher, { AuthTab } from '../../components/auth/AuthTabSwitcher'
 import AppLogo from '../../components/auth/AppLogo';
 import SignInForm from '../../components/auth/SignInForm';
 import SignUpForm from '../../components/auth/SignUpForm';
-import { Colors } from '../../constants/theme';
 import { Typography } from '../../constants/typography';
+import { Colors } from '../../constants/theme';
 import { RootStackParamList } from '../../navigation/AppNavigator';
+import { useTheme } from '../../hooks';
 
 type AuthNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Auth'>;
 
 export default function AuthScreen() {
   const navigation = useNavigation<AuthNavigationProp>();
   const [activeTab, setActiveTab] = useState<AuthTab>('sign-in');
+  const { colors } = useTheme();
 
   const handleSignIn = (data: { email: string; password: string }) => {
     navigation.replace('Main');
@@ -38,17 +42,19 @@ export default function AuthScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
-      >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
+        <KeyboardAvoidingView
+          style={styles.flex}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
         >
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="on-drag"
+            showsVerticalScrollIndicator={false}
+          >
           {/* Hero */}
           <View style={styles.hero}>
             <AppLogo />
@@ -59,12 +65,11 @@ export default function AuthScreen() {
           </View>
 
           {/* Auth card */}
-          <View style={styles.card}>
-            {/* Card header */}
-            <View style={styles.cardHeader}>
-              <Text style={styles.cardHeading}>Get started</Text>
-              <Text style={styles.cardSubheading}>
-                Sign in to your account or create a new one
+            <View style={[styles.card, { backgroundColor: colors.surface }]}>
+              {/* Card header */}
+              <View style={styles.cardHeader}>
+                <Text style={[styles.cardHeading, { color: colors.textPrimary }]}>Get started</Text>
+                <Text style={[styles.cardSubheading, { color: colors.textSecondary }]}>
               </Text>
             </View>
 
@@ -78,9 +83,10 @@ export default function AuthScreen() {
               <SignUpForm onSubmit={handleSignUp} />
             )}
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </TouchableWithoutFeedback>
   );
 }
 

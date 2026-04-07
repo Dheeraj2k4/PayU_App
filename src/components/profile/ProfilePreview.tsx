@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Colors } from '../../constants/theme';
 import { FontFamily, Typography } from '../../constants/typography';
+import { useTheme } from '../../hooks';
 
 interface ProfilePreviewProps {
   totalSpendings: string;
@@ -16,10 +17,11 @@ interface StatRowProps {
 }
 
 function StatRow({ label, value, valueBold = false }: StatRowProps) {
+  const { colors } = useTheme();
   return (
     <View style={styles.row}>
-      <Text style={styles.label}>{label}</Text>
-      <Text style={[styles.value, valueBold && styles.valueBold]}>{value}</Text>
+      <Text style={[styles.label, { color: colors.textSecondary }]}>{label}</Text>
+      <Text style={[styles.value, valueBold && styles.valueBold, { color: colors.textPrimary }]}>{value}</Text>
     </View>
   );
 }

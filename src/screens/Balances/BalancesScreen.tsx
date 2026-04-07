@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -7,89 +7,78 @@ import {
   StyleSheet,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Svg, { Path, Polygon } from 'react-native-svg';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../navigation/AppNavigator';
+import { AntDesign } from '@expo/vector-icons';
+import ExpenseItem, { StarSvgIcon } from '../../components/common/ExpenseItem';
 import { Colors } from '../../constants/theme';
 import { FontFamily, Typography } from '../../constants/typography';
 import HomeHeader from '../../components/home/HomeHeader';
+import AddTransactionSheet, { AddTransactionSheetRef } from '../../components/home/AddTransactionSheet';
 import { CreditScoreGauge, SpendingBarChart } from '../../components/charts';
+import { useTransactions } from '../../hooks';
+import { formatCurrency } from '../../utils/currency';
+import { formatMonthLabel } from '../../utils/date';
+import { useTheme } from '../../hooks';
+import FAB from '../../components/common/FAB';
 
 // ── Icons ────────────────────────────────────────────────────────────────────
 
-function StarIcon() {
-  return (
-    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-      <Polygon
-        points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"
-        stroke={Colors.dark.textMuted}
-        strokeWidth={1.8}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
-}
-
 function PlusSmallIcon() {
+  const { colors } = useTheme();
   return (
-    <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M12 5v14M5 12h14"
-        stroke={Colors.dark.textPrimary}
-        strokeWidth={2}
-        strokeLinecap="round"
-      />
-    </Svg>
+    <AntDesign name="plus" size={14} color={colors.textPrimary} />
   );
 }
 
-function PlusLargeIcon() {
+// ── Currency Card helpers ──────────────────────────────────────────────────────
+
+function FlagIcon() {
+  const { colors } = useTheme();
   return (
-    <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M12 5v14M5 12h14"
-        stroke={Colors.dark.textPrimary}
-        strokeWidth={2.2}
-        strokeLinecap="round"
-      />
-    </Svg>
-  );
-}
-
-// ── Currency Card ─────────────────────────────────────────────────────────────
-
-function CurrencyCard() {
-  return (
-    <View style={styles.currencyCard}>
-      <View style={styles.currencyLeft}>
-        {/* Canadian flag emoji as a simple text flag */}
-        <View style={styles.flagBox}>
-          <Text style={styles.flagEmoji}>🇨🇦</Text>
-        </View>
-        <View style={styles.currencyInfo}>
-          <Text style={styles.currencyCode}>CAD</Text>
-          <Text style={styles.currencyName}>Canadian Dollar</Text>
-        </View>
-      </View>
-
-      <View style={styles.currencyRight}>
-        <TouchableOpacity activeOpacity={0.7} style={styles.starBtn}>
-          <StarIcon />
-        </TouchableOpacity>
-        <TouchableOpacity activeOpacity={0.7} style={styles.enableBtn}>
-          <PlusSmallIcon />
-          <Text style={styles.enableText}>Enable</Text>
-        </TouchableOpacity>
-      </View>
+    <View style={[styles.flagBox, { backgroundColor: colors.surfaceElevated }]}>
+      <Text style={styles.flagEmoji}>🇨🇦</Text>
     </View>
+  );
+}
+
+function CurrencyRight() {
+  const { colors } = useTheme();
+  return (
+    <>
+      <TouchableOpacity activeOpacity={0.7} style={styles.starBtn}>
+        <StarSvgIcon />
+      </TouchableOpacity>
+      <TouchableOpacity activeOpacity={0.7} style={[styles.enableBtn, { backgroundColor: colors.surfaceElevated }]}>
+        <PlusSmallIcon />
+        <Text style={[styles.enableText, { color: colors.textPrimary }]}>Enable</Text>
+      </TouchableOpacity>
+    </>
   );
 }
 
 // ── Screen ────────────────────────────────────────────────────────────────────
 
 export default function BalancesScreen() {
+  const { currentMonthSummary, currentMonthYear } = useTransactions();
+  const { totalIncome, totalExpenses, balance } = currentMonthSummary;
+  const sheetRef = useRef<AddTransactionSheetRef>(null);
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const { transactions } = useTransactions();
+  const notificationCount = useMemo(
+    () => transactions.filter((tx) => tx.isRecurring && tx.type === 'expense').length,
+    [transactions],
+  );
+  const { colors } = useTheme();
+
   return (
-    <SafeAreaView style={styles.safe}>
-      <HomeHeader notificationCount={2} />
+    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
+      <HomeHeader
+        notificationCount={notificationCount}
+        onSearchPress={() => navigation.navigate('Search')}
+        onNotificationPress={() => navigation.navigate('Notifications')}
+      />
 
       <ScrollView
         contentContainerStyle={styles.scroll}
@@ -97,8 +86,8 @@ export default function BalancesScreen() {
       >
         {/* Title */}
         <View style={styles.titleBlock}>
-          <Text style={styles.title}>Your Balances</Text>
-          <Text style={styles.subtitle}>Manage your multi-currency accounts</Text>
+          <Text style={[styles.title, { color: colors.textPrimary }]}>Your Balances</Text>
+          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Manage your multi-currency accounts</Text>
         </View>
 
         {/* Credit Score Gauge */}
@@ -106,8 +95,15 @@ export default function BalancesScreen() {
 
         {/* Available Currencies */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Available Currencies</Text>
-          <CurrencyCard />
+          <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Available Currencies</Text>
+          <ExpenseItem
+            id="cad"
+            category="CAD"
+            subtitle="Canadian Dollar"
+            amount=""
+            icon={<FlagIcon />}
+            rightContent={<CurrencyRight />}
+          />
         </View>
 
         {/* Spending Bar Chart */}
@@ -118,10 +114,8 @@ export default function BalancesScreen() {
         />
       </ScrollView>
 
-      {/* FAB */}
-      <TouchableOpacity activeOpacity={0.85} style={styles.fab}>
-        <PlusLargeIcon />
-      </TouchableOpacity>
+      <FAB onPress={() => sheetRef.current?.open()} />
+      <AddTransactionSheet ref={sheetRef} />
     </SafeAreaView>
   );
 }
@@ -162,49 +156,68 @@ const styles = StyleSheet.create({
     color: Colors.dark.textPrimary,
   },
 
-  // Currency card
-  currencyCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  // Monthly Summary
+  summarySection: {
+    gap: 12,
+  },
+  balanceCard: {
     backgroundColor: Colors.dark.surface,
     borderRadius: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-  },
-  currencyLeft: {
-    flexDirection: 'row',
+    padding: 20,
+    gap: 6,
     alignItems: 'center',
-    gap: 14,
   },
+  balanceLabel: {
+    fontFamily: FontFamily.regular,
+    fontSize: 13,
+    color: Colors.dark.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  balanceAmount: {
+    fontFamily: FontFamily.bold,
+    fontSize: 36,
+    letterSpacing: -1,
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  summaryCard: {
+    flex: 1,
+    backgroundColor: Colors.dark.surface,
+    borderRadius: 14,
+    padding: 16,
+    gap: 4,
+    borderWidth: 1,
+  },
+  summaryIcon: {
+    fontSize: 20,
+    marginBottom: 2,
+  },
+  summaryLabel: {
+    fontFamily: FontFamily.regular,
+    fontSize: 11,
+    color: Colors.dark.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+  },
+  summaryAmount: {
+    fontFamily: FontFamily.bold,
+    fontSize: 18,
+  },
+
+  // Currency card helpers
   flagBox: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 46,
+    height: 46,
+    borderRadius: 23,
     backgroundColor: Colors.dark.surfaceElevated,
     alignItems: 'center',
     justifyContent: 'center',
   },
   flagEmoji: {
-    fontSize: 22,
-  },
-  currencyInfo: {
-    gap: 2,
-  },
-  currencyCode: {
-    fontFamily: FontFamily.semiBold,
-    fontSize: 15,
-    color: Colors.dark.textPrimary,
-  },
-  currencyName: {
-    fontFamily: FontFamily.regular,
-    fontSize: 12,
-    color: Colors.dark.textSecondary,
-  },
-  currencyRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
+    fontSize: 24,
   },
   starBtn: {
     padding: 4,
@@ -212,35 +225,17 @@ const styles = StyleSheet.create({
   enableBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    borderWidth: 1.5,
-    borderColor: Colors.dark.border,
+    gap: 4,
+    backgroundColor: Colors.dark.surfaceElevated,
     borderRadius: 10,
-    paddingHorizontal: 12,
+    paddingHorizontal: 10,
     paddingVertical: 7,
   },
   enableText: {
-    fontFamily: FontFamily.medium,
-    fontSize: 13,
+    fontFamily: FontFamily.semiBold,
+    fontSize: 12,
     color: Colors.dark.textPrimary,
   },
-
-  // FAB
-  fab: {
-    position: 'absolute',
-    bottom: 90,
-    right: 20,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: Colors.dark.surfaceElevated,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    elevation: 8,
-  },
 });
+
 

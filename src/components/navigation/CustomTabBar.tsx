@@ -1,24 +1,27 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { Colors } from '../../constants/theme';
 import { FontFamily } from '../../constants/typography';
-import { HomeIcon, BalancesIcon, ProfileIcon } from './TabIcons';
+import { HomeIcon, BalancesIcon, ProfileIcon, AnalyticsIcon } from './TabIcons';
+import { useTheme } from '../../hooks';
 
 const TAB_CONFIG = [
-  { name: 'Home',     label: 'Home',     Icon: HomeIcon },
-  { name: 'Balances', label: 'Balances', Icon: BalancesIcon },
-  { name: 'Profile',  label: 'Profile',  Icon: ProfileIcon },
+  { name: 'Home',      label: 'Home',      Icon: HomeIcon },
+  { name: 'Balances',  label: 'Balances',  Icon: BalancesIcon },
+  { name: 'Analytics', label: 'Analytics', Icon: AnalyticsIcon },
+  { name: 'Profile',   label: 'Profile',   Icon: ProfileIcon },
 ] as const;
 
 export default function CustomTabBar({ state, navigation }: BottomTabBarProps) {
+  const { colors } = useTheme();
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.tabBar, borderTopColor: colors.border }]}>
       <View style={styles.bar}>
         {state.routes.map((route, index) => {
           const isActive = state.index === index;
           const config = TAB_CONFIG[index];
-          const color = isActive ? Colors.dark.textPrimary : Colors.dark.iconMuted;
+          const color = isActive ? colors.textPrimary : colors.iconMuted;
 
           const onPress = () => {
             const event = navigation.emit({
@@ -38,11 +41,7 @@ export default function CustomTabBar({ state, navigation }: BottomTabBarProps) {
               activeOpacity={0.7}
               style={styles.tab}
             >
-              <config.Icon
-                color={isActive ? Colors.dark.textPrimary : Colors.dark.iconMuted}
-                size={24}
-                {...(config.name === 'Balances' ? { filled: isActive } : {})}
-              />
+              <config.Icon color={color} size={20} filled={isActive} />
               <Text style={[styles.label, { color, fontFamily: isActive ? FontFamily.bold : FontFamily.regular }]}>
                 {config.label}
               </Text>
@@ -56,9 +55,7 @@ export default function CustomTabBar({ state, navigation }: BottomTabBarProps) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: Colors.dark.tabBar,
     borderTopWidth: 1,
-    borderTopColor: Colors.dark.border,
     paddingBottom: Platform.OS === 'ios' ? 24 : 8,
   },
   bar: {

@@ -1,83 +1,112 @@
 import React from 'react';
-import Svg, { Path, Rect, Circle } from 'react-native-svg';
+import Svg, { Path } from 'react-native-svg';
 
 interface IconProps {
   color: string;
   size?: number;
+  filled?: boolean;
 }
 
-export function HomeIcon({ color, size = 24 }: IconProps) {
+export function HomeIcon({ color, size = 20, filled = false }: IconProps) {
   return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Svg width={size} height={size} viewBox="0 0 20 20" fill="none">
+      {/* House shape */}
       <Path
-        d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H5a1 1 0 01-1-1V9.5z"
+        d="M2.49957 8.33198C2.49951 8.08958 2.55234 7.85008 2.65437 7.6302C2.7564 7.41031 2.90517 7.21533 3.09031 7.05886L8.92268 2.05968C9.22345 1.80548 9.60453 1.66602 9.99834 1.66602C10.3921 1.66602 10.7732 1.80548 11.074 2.05968L16.9064 7.05886C17.0915 7.21533 17.2403 7.41031 17.3423 7.6302C17.4443 7.85008 17.4972 8.08958 17.4971 8.33198V15.8307C17.4971 16.2727 17.3215 16.6966 17.009 17.0091C16.6965 17.3216 16.2727 17.4971 15.8307 17.4971H4.16597C3.72401 17.4971 3.30016 17.3216 2.98765 17.0091C2.67514 16.6966 2.49957 16.2727 2.49957 15.8307V8.33198Z"
+        fill={filled ? color : 'none'}
         stroke={color}
-        strokeWidth={1.8}
+        strokeWidth={1.66639}
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <Path
-        d="M9 21V12h6v9"
-        stroke={color}
-        strokeWidth={1.8}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
-}
-
-export function BalancesIcon({ color, size = 24, filled = false }: IconProps & { filled?: boolean }) {
-  if (filled) {
-    return (
-      <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-        <Rect x={2} y={5} width={20} height={14} rx={3} fill={color} />
+      {/* Door cutout when active */}
+      {filled && (
         <Path
-          d="M2 10h20"
-          stroke="#000"
-          strokeWidth={1.5}
+          d="M12.498 17.4972V10.8316C12.498 10.6106 12.4102 10.3987 12.2539 10.2425C12.0977 10.0862 11.8857 9.99841 11.6648 9.99841H8.33198C8.111 9.99841 7.89907 10.0862 7.74282 10.2425C7.58656 10.3987 7.49878 10.6106 7.49878 10.8316V17.4972"
+          fill="#1D1B1B"
         />
-        <Rect x={5} y={14} width={4} height={2} rx={1} fill="#000" opacity={0.4} />
-      </Svg>
-    );
-  }
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Rect
-        x={2}
-        y={5}
-        width={20}
-        height={14}
-        rx={3}
-        stroke={color}
-        strokeWidth={1.8}
-      />
+      )}
+      {/* Door outline */}
       <Path
-        d="M2 10h20"
+        d="M12.498 17.4972V10.8316C12.498 10.6106 12.4102 10.3987 12.2539 10.2425C12.0977 10.0862 11.8857 9.99841 11.6648 9.99841H8.33198C8.111 9.99841 7.89907 10.0862 7.74282 10.2425C7.58656 10.3987 7.49878 10.6106 7.49878 10.8316V17.4972"
         stroke={color}
-        strokeWidth={1.8}
+        strokeWidth={1.66639}
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
-      <Rect x={5} y={14} width={4} height={2} rx={1} fill={color} />
     </Svg>
   );
 }
 
-export function ProfileIcon({ color, size = 24 }: IconProps) {
+export function BalancesIcon({ color, size = 20, filled = false }: IconProps) {
   return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Circle
-        cx={12}
-        cy={8}
-        r={4}
-        stroke={color}
-        strokeWidth={1.8}
+    <Svg width={size} height={size} viewBox="0 0 20 20" fill="none">
+      {/* Wallet top flap + coin slot */}
+      <Path
+        d="M15.8308 5.83242V3.33283C15.8308 3.11185 15.743 2.89993 15.5867 2.74367C15.4305 2.58742 15.2186 2.49963 14.9976 2.49963H4.16603C3.72407 2.49963 3.30022 2.6752 2.98771 2.98771C2.6752 3.30022 2.49963 3.72407 2.49963 4.16603C2.49963 4.60798 2.6752 5.03183 2.98771 5.34434C3.30022 5.65685 3.72407 5.83242 4.16603 5.83242H16.664C16.8849 5.83242 17.0969 5.9202 17.2531 6.07646C17.4094 6.23271 17.4972 6.44464 17.4972 6.66562V9.9984H14.9976C14.5556 9.9984 14.1318 10.174 13.8193 10.4865C13.5068 10.799 13.3312 11.2228 13.3312 11.6648C13.3312 12.1067 13.5068 12.5306 13.8193 12.8431C14.1318 13.1556 14.5556 13.3312 14.9976 13.3312H17.4972C17.7181 13.3312 17.9301 13.2434 18.0863 13.0871C18.2426 12.9309 18.3304 12.719 18.3304 12.498V10.8316C18.3304 10.6106 18.2426 10.3987 18.0863 10.2424C17.9301 10.0862 17.7181 9.9984 17.4972 9.9984"
+        fill={color}
       />
       <Path
-        d="M4 20c0-4 3.6-7 8-7s8 3 8 7"
+        d="M15.8308 5.83242V3.33283C15.8308 3.11185 15.743 2.89993 15.5867 2.74367C15.4305 2.58742 15.2186 2.49963 14.9976 2.49963H4.16603C3.72407 2.49963 3.30022 2.6752 2.98771 2.98771C2.6752 3.30022 2.49963 3.72407 2.49963 4.16603V9.9984M17.4972 9.9984H14.9976C14.5556 9.9984 14.1318 10.174 13.8193 10.4865C13.5068 10.799 13.3312 11.2228 13.3312 11.6648C13.3312 12.1067 13.5068 12.5306 13.8193 12.8431C14.1318 13.1556 14.5556 13.3312 14.9976 13.3312H17.4972C17.7181 13.3312 17.9301 13.2434 18.0863 13.0871C18.2426 12.9309 18.3304 12.719 18.3304 12.498V10.8316C18.3304 10.6106 18.2426 10.3987 18.0863 10.2424C17.9301 10.0862 17.7181 9.9984 17.4972 9.9984Z"
+        stroke={color}
+        strokeWidth={1.66639}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      {/* Wallet body */}
+      <Path
+        d="M2.49963 4.16602V15.8308C2.49963 16.2727 2.6752 16.6966 2.98771 17.0091C3.30022 17.3216 3.72407 17.4972 4.16603 17.4972H16.664C16.8849 17.4972 17.0969 17.4094 17.2531 17.2531C17.4094 17.0969 17.4972 16.8849 17.4972 16.664V13.3312"
+        fill={color}
+        stroke={color}
+        strokeWidth={1.66639}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+export function ProfileIcon({ color, size = 20, filled = false }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 20 20" fill="none">
+      {/* Body */}
+      <Path
+        d="M15.8308 17.4971V15.8307C15.8308 14.9468 15.4796 14.0991 14.8546 13.4741C14.2296 12.8491 13.3819 12.4979 12.498 12.4979H7.4988C6.61489 12.4979 5.76718 12.8491 5.14217 13.4741C4.51715 14.0991 4.16602 14.9468 4.16602 15.8307V17.4971"
+        stroke={color}
+        strokeWidth={1.66639}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      {/* Head */}
+      <Path
+        d="M9.99831 9.1652C11.839 9.1652 13.3311 7.67306 13.3311 5.83242C13.3311 3.99177 11.839 2.49963 9.99831 2.49963C8.15767 2.49963 6.66553 3.99177 6.66553 5.83242C6.66553 7.67306 8.15767 9.1652 9.99831 9.1652Z"
+        fill={filled ? color : 'none'}
+        stroke={color}
+        strokeWidth={1.66639}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+export function AnalyticsIcon({ color, size = 24, filled = false }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M18 20V10M12 20V4M6 20v-6"
         stroke={color}
         strokeWidth={1.8}
         strokeLinecap="round"
+        strokeLinejoin="round"
       />
+      {filled && (
+        <Path
+          d="M18 10v10H15V10h3zM12 4v16H9V4h3zM6 14v6H3v-6h3z"
+          fill={color}
+          opacity={0.25}
+        />
+      )}
     </Svg>
   );
 }

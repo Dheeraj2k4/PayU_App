@@ -1,51 +1,44 @@
-import React, { useState } from 'react';
+import React, { useRef, useState, useMemo } from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../navigation/AppNavigator';
 import HomeHeader from '../../components/home/HomeHeader';
 import BankCard from '../../components/home/BankCard';
 import ExpenseToggle, { ExpensePeriod } from '../../components/home/ExpenseToggle';
-import ExpenseItem, { ExpenseItemData } from '../../components/home/ExpenseItem';
-import FAB from '../../components/home/FAB';
+import ExpenseItem, { ExpenseItemData } from '../../components/common/ExpenseItem';
+import FAB from '../../components/common/FAB';
+import AddTransactionSheet, { AddTransactionSheetRef } from '../../components/home/AddTransactionSheet';
+import { TransactionList } from '../../components/transactions';
 import { Colors } from '../../constants/theme';
 import { Typography, FontFamily } from '../../constants/typography';
+import { useTransactions, useTheme } from '../../hooks';
+import { formatCurrency } from '../../utils/currency';
+import { useUserContext } from '../../store';
 
 const WEEKLY_EXPENSES: ExpenseItemData[] = [
-  {
-    id: '1',
-    category: 'FOOD',
-    subtitle: 'Lesser than last week',
-    amount: '$1000',
-    variant: 'default',
-  },
-  {
-    id: '2',
-    category: 'TRAVEL',
-    subtitle: 'More than last week',
-    amount: '$4000',
-    variant: 'dark-gradient',
-  },
+  { id: '1', category: 'FOOD',   subtitle: 'Lesser than last week', amount: '$1000', variant: 'default' },
+  { id: '2', category: 'TRAVEL', subtitle: 'More than last week',   amount: '$4000', variant: 'dark-gradient' },
 ];
-
 const MONTHLY_EXPENSES: ExpenseItemData[] = [
-  {
-    id: '3',
-    category: 'FOOD',
-    subtitle: 'Same as last month',
-    amount: '$3800',
-    variant: 'default',
-  },
-  {
-    id: '4',
-    category: 'TRAVEL',
-    subtitle: 'More than last month',
-    amount: '$15000',
-    variant: 'dark-gradient',
-  },
+  { id: '3', category: 'FOOD',   subtitle: 'Same as last month',  amount: '$3800',  variant: 'default' },
+  { id: '4', category: 'TRAVEL', subtitle: 'More than last month', amount: '$15000', variant: 'dark-gradient' },
 ];
 
 export default function HomeScreen() {
   const [period, setPeriod] = useState<ExpensePeriod>('weekly');
   const [starred, setStarred] = useState<Set<string>>(new Set());
+  const sheetRef = useRef<AddTransactionSheetRef>(null);
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const { recentTransactions, deleteTransaction, currentMonthSummary, transactions } = useTransactions();
+  const { profile } = useUserContext();
+  const { colors } = useTheme();
+
+  const notificationCount = useMemo(
+    () => transactions.filter((tx) => tx.isRecurring && tx.type === 'expense').length,
+    [transactions],
+  );
 
   const expenses = period === 'weekly' ? WEEKLY_EXPENSES : MONTHLY_EXPENSES;
 
@@ -58,7 +51,7 @@ export default function HomeScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top']}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['top']}>
       <View style={styles.flex}>
         <ScrollView
           style={styles.flex}
@@ -66,17 +59,39 @@ export default function HomeScreen() {
           showsVerticalScrollIndicator={false}
         >
           {/* Header */}
-          <HomeHeader notificationCount={2} />
+          <HomeHeader
+            notificationCount={notificationCount}
+            onSearchPress={() => navigation.navigate('Search')}
+            onNotificationPress={() => navigation.navigate('Notifications')}
+          />
 
           {/* Divider */}
-          <View style={styles.divider} />
+          <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
           <View style={styles.body}>
             {/* Greeting */}
             <View style={styles.greeting}>
-              <Text style={styles.greetingName}>Hey, Alex</Text>
-              <Text style={styles.greetingSubtitle}>Add your yesterday's expense</Text>
+              <Text style={[styles.greetingName, { color: colors.textPrimary }]}>Hey, {profile.name.split(' ')[0]}</Text>
+              <Text style={[styles.greetingSubtitle, { color: colors.textSecondary }]}>Add your yesterday's expense</Text>
             </View>
+
+            {/* Balance summary row
+            {recentTransactions.length > 0 && (
+              <View style={styles.balanceRow}>
+                <View style={[styles.miniCard, { borderColor: `${Colors.income}44` }]}>
+                  <Text style={styles.miniLabel}>Income</Text>
+                  <Text style={[styles.miniAmount, { color: Colors.income }]}>
+                    {formatCurrency(currentMonthSummary.totalIncome)}
+                  </Text>
+                </View>
+                <View style={[styles.miniCard, { borderColor: `${Colors.expense}44` }]}>
+                  <Text style={styles.miniLabel}>Expenses</Text>
+                  <Text style={[styles.miniAmount, { color: Colors.expense }]}>
+                    {formatCurrency(currentMonthSummary.totalExpenses)}
+                  </Text>
+                </View>
+              </View>
+            )} */}
 
             {/* Bank card */}
             <BankCard
@@ -89,7 +104,7 @@ export default function HomeScreen() {
 
             {/* Expenses section */}
             <View style={styles.expensesHeader}>
-              <Text style={styles.expensesTitle}>Your expenses</Text>
+              <Text style={[styles.expensesTitle, { color: colors.textPrimary }]}>Your expenses</Text>
             </View>
 
             <ExpenseToggle active={period} onChange={setPeriod} />
@@ -105,11 +120,25 @@ export default function HomeScreen() {
                 />
               ))}
             </View>
+
+            {/* Recent real transactions */}
+            {recentTransactions.length > 0 && (
+              <View style={styles.recentSection}>
+                <Text style={[styles.expensesTitle, { color: colors.textPrimary }]}>Recent Transactions</Text>
+                <TransactionList
+                  transactions={recentTransactions.slice(0, 5)}
+                  onDelete={deleteTransaction}
+                />
+              </View>
+            )}
           </View>
         </ScrollView>
 
         {/* Floating action button */}
-        <FAB onPress={() => { /* TODO: navigate to add expense */ }} />
+        <FAB onPress={() => sheetRef.current?.open()} />
+
+        {/* Add transaction bottom sheet */}
+        <AddTransactionSheet ref={sheetRef} />
       </View>
     </SafeAreaView>
   );
@@ -158,6 +187,32 @@ const styles = StyleSheet.create({
     color: Colors.dark.textPrimary,
   },
   expenseList: {
+    gap: 12,
+  },
+  balanceRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  miniCard: {
+    flex: 1,
+    backgroundColor: Colors.dark.surface,
+    borderRadius: 12,
+    padding: 12,
+    gap: 2,
+    borderWidth: 1,
+  },
+  miniLabel: {
+    fontFamily: FontFamily.regular,
+    fontSize: 11,
+    color: Colors.dark.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+  },
+  miniAmount: {
+    fontFamily: FontFamily.bold,
+    fontSize: 16,
+  },
+  recentSection: {
     gap: 12,
   },
 });

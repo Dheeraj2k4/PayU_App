@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Colors } from '../../constants/theme';
 import { FontFamily } from '../../constants/typography';
+import { useTheme } from '../../hooks';
 
 interface ProfileAvatarProps {
   name: string;
@@ -10,13 +11,14 @@ interface ProfileAvatarProps {
 
 export default function ProfileAvatar({ name, initial }: ProfileAvatarProps) {
   const letter = initial ?? name.charAt(0).toUpperCase();
+  const { colors } = useTheme();
 
   return (
     <View style={styles.container}>
       <View style={styles.avatarBox}>
         <Text style={styles.avatarLetter}>{letter}</Text>
       </View>
-      <Text style={styles.name}>{name}</Text>
+      <Text style={[styles.name, { color: colors.textPrimary }]}>{name}</Text>
     </View>
   );
 }

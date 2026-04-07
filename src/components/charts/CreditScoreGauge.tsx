@@ -3,6 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { SemiCircleChart } from '@tubinex/react-native-charts';
 import { Colors } from '../../constants/theme';
 import { FontFamily } from '../../constants/typography';
+import { useTheme } from '../../hooks';
 
 interface CreditScoreGaugeProps {
   score?: number;
@@ -21,6 +22,7 @@ export default function CreditScoreGauge({
   score = 660,
   lastCheckDate = '21 Apr',
 }: CreditScoreGaugeProps) {
+  const { colors } = useTheme();
   return (
     <View style={styles.wrapper}>
       <SemiCircleChart
@@ -34,18 +36,18 @@ export default function CreditScoreGauge({
         strokeWidth={36}
         segmentGap={6}
         cornerRadius={6}
-        backgroundColor={Colors.dark.surfaceElevated}
+        backgroundColor={colors.surfaceElevated}
         selectedSegmentIndex={1}
         selectedStrokeWidthIncrease={0}
         contentAlignment="flex-end"
         centerContent={
           <View style={styles.center}>
-            <Text style={styles.scoreText}>{score}</Text>
+            <Text style={[styles.scoreText, { color: colors.textPrimary }]}>{score}</Text>
           </View>
         }
       />
-      <Text style={styles.label}>Your Credit Score is {scoreLabel(score)}</Text>
-      <Text style={styles.sub}>Last Check on {lastCheckDate}</Text>
+      <Text style={[styles.label, { color: colors.textPrimary }]}>Your Credit Score is {scoreLabel(score)}</Text>
+      <Text style={[styles.sub, { color: colors.textSecondary }]}>Last Check on {lastCheckDate}</Text>
     </View>
   );
 }

@@ -27,20 +27,20 @@ export const Colors = {
 
   // Light mode — primary UI (90% of the app)
   light: {
-    background:      '#FFFFFF',   // pure white base
-    surface:         '#F5F5F5',   // cards, sheets
-    surfaceElevated: '#EFEFEF',   // modals, bottom sheets
-    border:          'rgba(0,0,0,0.08)',
-    textPrimary:     '#000000',
-    textSecondary:   '#555555',
-    textMuted:       '#999999',
-    icon:            '#000000',
-    iconMuted:       '#AAAAAA',
+    background:      '#F7F9FC',   // soft off-white base
+    surface:         '#FFFFFF',   // cards, sheets
+    surfaceElevated: '#EEF2F7',   // modals, bottom sheets
+    border:          '#E2E8F0',
+    textPrimary:     '#0F172A',
+    textSecondary:   '#64748B',
+    textMuted:       '#94A3B8',
+    icon:            '#0F172A',
+    iconMuted:       '#94A3B8',
     tabBar:          '#FFFFFF',
   },
 
   // Semantic — kept minimal, only for transaction +/- indicators
-  income:  '#3BB9A1',   // teal for income amounts
-  expense: '#EE89DF',   // pink for expense amounts
+  income:  '#FFFFFF',   // white for income amounts
+  expense: '#FFFFFF',   // white for expense amounts
   error:   '#FF4444',
 } as const;
