@@ -166,7 +166,7 @@ export default function AnalyticsScreen() {
   }, []);
 
   const monthLabel = `${MONTH_NAMES[selected.month]} ${selected.year}`;
-  const triggerKey = `${selected.year}-${selected.month}-${activeTab}`;
+  const triggerKey = `${selected.year}-${selected.month}-${activeTab}-${categoryData.length}-${Math.round(activeTotal)}`;
 
   return (
     <Animated.View style={[styles.root, { paddingTop: insets.top, backgroundColor: colors.background }]}>

@@ -65,12 +65,12 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['top']}>
+      <View style={styles.flex}>
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
-        <View style={styles.flex}>
           <ScrollView
             style={styles.flex}
             contentContainerStyle={styles.scrollContent}
@@ -127,11 +127,11 @@ export default function ProfileScreen() {
               )}
             </View>
           </ScrollView>
+        </KeyboardAvoidingView>
 
-          <FAB onPress={() => sheetRef.current?.open()} />
-          <AddTransactionSheet ref={sheetRef} />
-        </View>
-      </KeyboardAvoidingView>
+        <FAB onPress={() => sheetRef.current?.open()} />
+        <AddTransactionSheet ref={sheetRef} />
+      </View>
     </SafeAreaView>
   );
 }

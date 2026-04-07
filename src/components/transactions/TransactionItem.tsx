@@ -8,6 +8,7 @@ import { getCategoryById } from '../../constants/categories';
 import { formatAmount } from '../../utils/currency';
 import { Colors } from '../../constants/theme';
 import { FontFamily } from '../../constants/typography';
+import { useTheme } from '../../hooks';
 
 // ─── Category icon map (same as AddTransactionSheet) ─────────────────────────
 
@@ -44,6 +45,7 @@ interface Props {
 }
 
 export default function TransactionItem({ transaction, onDelete }: Props) {
+  const { colors } = useTheme();
   const swipeableRef = useRef<Swipeable>(null);
   const cat = getCategoryById(transaction.categoryId);
   const isIncome = transaction.type === 'income';
@@ -71,12 +73,12 @@ export default function TransactionItem({ transaction, onDelete }: Props) {
 
       {/* Info */}
       <View style={styles.info}>
-        <Text style={styles.category} numberOfLines={1}>{label}</Text>
-        <Text style={styles.subtitle}>{subtitle}</Text>
+        <Text style={[styles.category, { color: colors.textPrimary }]} numberOfLines={1}>{label}</Text>
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{subtitle}</Text>
       </View>
 
       {/* Amount badge */}
-      <View style={styles.amountBadge}>
+      <View style={[styles.amountBadge, { backgroundColor: colors.surfaceElevated }]}>
         <Text style={[styles.amountText, { color: isIncome ? Colors.income : Colors.expense }]}>
           {formatAmount(transaction.amount, transaction.type)}
         </Text>
@@ -104,7 +106,7 @@ export default function TransactionItem({ transaction, onDelete }: Props) {
           {cardContent}
         </LinearGradient>
       ) : (
-        <View style={[styles.card, styles.defaultCard]}>{cardContent}</View>
+        <View style={[styles.card, { backgroundColor: colors.surface }]}>{cardContent}</View>
       )}
     </Swipeable>
   );
@@ -117,9 +119,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     paddingVertical: 16,
     paddingHorizontal: 16,
-  },
-  defaultCard: {
-    backgroundColor: Colors.dark.surface,
   },
   inner: {
     flexDirection: 'row',
@@ -141,17 +140,14 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.bold,
     fontSize: 14,
     lineHeight: 20,
-    color: Colors.dark.textPrimary,
     letterSpacing: 0.3,
   },
   subtitle: {
     fontFamily: FontFamily.regular,
     fontSize: 12,
     lineHeight: 16,
-    color: Colors.dark.textSecondary,
   },
   amountBadge: {
-    backgroundColor: Colors.dark.surfaceElevated,
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 8,

@@ -1,65 +1,67 @@
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import Animated, { useSharedValue, useAnimatedProps, withTiming, withDelay, Easing } from 'react-native-reanimated';
-import Svg, { Circle } from 'react-native-svg';
-import { Colors } from '../../constants/theme';
-import { FontFamily, Typography } from '../../constants/typography';
-import { formatCurrency } from '../../utils/currency';
+/* eslint-disable react-native/no-inline-styles */
+import React, { useEffect, useMemo } from 'react';
+import { View, StyleSheet } from 'react-native';
+import {
+  Canvas,
+  Path,
+  Skia,
+  Text as SkiaText,
+  useFont,
+} from '@shopify/react-native-skia';
+import {
+  useSharedValue,
+  withTiming,
+  useDerivedValue,
+  Easing,
+} from 'react-native-reanimated';
 import { CategoryData } from './types';
+import { useTheme } from '../../hooks';
+import { formatCurrency } from '../../utils/currency';
 
-const OUTER_R = 90;
-const INNER_R = 58;
-export const STROKE_W = OUTER_R - INNER_R;
-export const MID_R = (OUTER_R + INNER_R) / 2;
-export const CIRCUMFERENCE = 2 * Math.PI * MID_R;
+// ── Constants ─────────────────────────────────────────────────────────────────
 
-const AnimatedCircle = Animated.createAnimatedComponent(Circle);
+const CANVAS_SIZE = 230;
+const CX = CANVAS_SIZE / 2;
+const CY = CANVAS_SIZE / 2;
+const RADIUS = 82;
+const STROKE_W = 28;
+const BG_STROKE_W = 36;
+const GAP_DEG = 24;
 
-// ── DonutSlice ────────────────────────────────────────────────────────────────
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
-interface DonutSliceProps {
-  fraction: number;
-  cumulativeFraction: number;
-  color: string;
-  index: number;
+interface SliceGeo {
+  startDeg: number;
+  sweepDeg: number;
 }
 
-function DonutSlice({ fraction, cumulativeFraction, color, index }: DonutSliceProps) {
-  const sliceLength = fraction * CIRCUMFERENCE;
-  const rotationDeg = cumulativeFraction * 360 - 90;
-  const progress = useSharedValue(0);
+function buildSliceGeo(data: CategoryData[], total: number): SliceGeo[] {
+  if (!data.length || total === 0) return [];
+  const totalGap = GAP_DEG * data.length;
+  const avail = 360 - totalGap;
+  let angle = -90;
+  return data.map((s) => {
+    const sweep = (s.amount / total) * avail;
+    const geo: SliceGeo = { startDeg: angle, sweepDeg: Math.max(sweep, 0) };
+    angle += sweep + GAP_DEG;
+    return geo;
+  });
+}
 
-  useEffect(() => {
-    progress.value = 0;
-    progress.value = withDelay(
-      index * 80,
-      withTiming(1, { duration: 600, easing: Easing.out(Easing.cubic) }),
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const animatedProps = useAnimatedProps(() => ({
-    strokeDashoffset: sliceLength * (1 - progress.value),
-  }));
-
-  if (sliceLength < 0.5) return null;
-
-  return (
-    <AnimatedCircle
-      cx={OUTER_R}
-      cy={OUTER_R}
-      r={MID_R}
-      fill="none"
-      stroke={color}
-      strokeWidth={STROKE_W}
-      strokeDasharray={`${sliceLength} ${CIRCUMFERENCE - sliceLength}`}
-      transform={`rotate(${rotationDeg} ${OUTER_R} ${OUTER_R})`}
-      animatedProps={animatedProps}
-    />
+function makeArcPath(geo: SliceGeo, prog: number) {
+  'worklet';
+  const sweep = geo.sweepDeg * prog;
+  if (sweep < 0.1) return Skia.Path.Make();
+  const path = Skia.Path.Make();
+  path.addArc(
+    { x: CX - RADIUS, y: CY - RADIUS, width: RADIUS * 2, height: RADIUS * 2 },
+    geo.startDeg,
+    sweep,
   );
+  return path;
 }
 
-// ── DonutChart ────────────────────────────────────────────────────────────────
+// ── Component ─────────────────────────────────────────────────────────────────
 
 interface DonutChartProps {
   slices: CategoryData[];
@@ -68,78 +70,112 @@ interface DonutChartProps {
 }
 
 export default function DonutChart({ slices, total, triggerKey }: DonutChartProps) {
-  if (slices.length === 0 || total === 0) {
-    return (
-      <View style={styles.wrap}>
-        <Svg width={OUTER_R * 2} height={OUTER_R * 2}>
-          <Circle
-            cx={OUTER_R}
-            cy={OUTER_R}
-            r={MID_R}
-            fill="none"
-            stroke={Colors.dark.border}
-            strokeWidth={STROKE_W}
-          />
-        </Svg>
-        <View style={styles.center} pointerEvents="none">
-          <Text style={styles.noData}>No data</Text>
-        </View>
-      </View>
-    );
+  const { colors } = useTheme();
+
+  const progress = useSharedValue(0);
+  const geoData = useSharedValue<SliceGeo[]>([]);
+
+  useEffect(() => {
+    geoData.value = buildSliceGeo(slices, total);
+    progress.value = 0;
+    progress.value = withTiming(1, { duration: 900, easing: Easing.out(Easing.cubic) });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [triggerKey]);
+
+  const font = useFont(require('../../../assets/fonts/Inter_700Bold.ttf'), 22);
+  const smallFont = useFont(require('../../../assets/fonts/Inter_400Regular.ttf'), 12);
+
+  // Fixed-count derived paths — max 9 categories. Avoids hooks-in-loop violation.
+  /* eslint-disable react-hooks/rules-of-hooks */
+  const p0 = useDerivedValue(() => { const g = geoData.value[0]; return g ? makeArcPath(g, progress.value) : Skia.Path.Make(); });
+  const p1 = useDerivedValue(() => { const g = geoData.value[1]; return g ? makeArcPath(g, progress.value) : Skia.Path.Make(); });
+  const p2 = useDerivedValue(() => { const g = geoData.value[2]; return g ? makeArcPath(g, progress.value) : Skia.Path.Make(); });
+  const p3 = useDerivedValue(() => { const g = geoData.value[3]; return g ? makeArcPath(g, progress.value) : Skia.Path.Make(); });
+  const p4 = useDerivedValue(() => { const g = geoData.value[4]; return g ? makeArcPath(g, progress.value) : Skia.Path.Make(); });
+  const p5 = useDerivedValue(() => { const g = geoData.value[5]; return g ? makeArcPath(g, progress.value) : Skia.Path.Make(); });
+  const p6 = useDerivedValue(() => { const g = geoData.value[6]; return g ? makeArcPath(g, progress.value) : Skia.Path.Make(); });
+  const p7 = useDerivedValue(() => { const g = geoData.value[7]; return g ? makeArcPath(g, progress.value) : Skia.Path.Make(); });
+  const p8 = useDerivedValue(() => { const g = geoData.value[8]; return g ? makeArcPath(g, progress.value) : Skia.Path.Make(); });
+  /* eslint-enable react-hooks/rules-of-hooks */
+
+  const allPaths = [p0, p1, p2, p3, p4, p5, p6, p7, p8];
+
+  const bgPath = useMemo(() => {
+    const p = Skia.Path.Make();
+    p.addCircle(CX, CY, RADIUS);
+    return p;
+  }, []);
+
+  // Center labels
+  const totalText = total > 0 ? formatCurrency(total) : '';
+  const subText = total > 0
+    ? `${slices.length} categor${slices.length === 1 ? 'y' : 'ies'}`
+    : 'No data';
+  const totalTextW = font?.measureText(totalText).width ?? 0;
+  const subTextW = smallFont?.measureText(subText).width ?? 0;
+
+  if (!font || !smallFont) {
+    return <View style={styles.canvas} />;
   }
 
-  let cumulative = 0;
   return (
-    <View style={styles.wrap}>
-      <Svg width={OUTER_R * 2} height={OUTER_R * 2}>
-        {slices.map((slice, i) => {
-          const fraction = slice.amount / total;
-          const node = (
-            <DonutSlice
-              key={`${triggerKey}-${slice.id}`}
-              fraction={fraction}
-              cumulativeFraction={cumulative}
-              color={slice.color}
-              index={i}
+    <View style={styles.wrapper}>
+      <Canvas style={styles.canvas}>
+        {/* Background ring */}
+        <Path
+          path={bgPath}
+          style="stroke"
+          strokeWidth={BG_STROKE_W}
+          color={colors.border}
+        />
+
+        {/* Colored animated slices */}
+        {allPaths.map((path, i) => {
+          const color = slices[i]?.color;
+          if (!color) return null;
+          return (
+            <Path
+              key={i}
+              path={path}
+              style="stroke"
+              strokeWidth={STROKE_W}
+              strokeCap="round"
+              color={color}
             />
           );
-          cumulative += fraction;
-          return node;
         })}
-      </Svg>
-      <View style={styles.center} pointerEvents="none">
-        <Text style={styles.total}>{formatCurrency(total)}</Text>
-        <Text style={styles.label}>Total</Text>
-      </View>
+
+        {/* Center: total amount */}
+        {total > 0 && (
+          <SkiaText
+            x={CX - totalTextW / 2}
+            y={CY + 6}
+            text={totalText}
+            font={font}
+            color={colors.textPrimary}
+          />
+        )}
+
+        {/* Center: subtitle */}
+        <SkiaText
+          x={CX - subTextW / 2}
+          y={total > 0 ? CY + 24 : CY + 6}
+          text={subText}
+          font={smallFont}
+          color={colors.textSecondary}
+        />
+      </Canvas>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: {
-    width: OUTER_R * 2,
-    height: OUTER_R * 2,
-    alignItems: 'center',
-    justifyContent: 'center',
+  wrapper: {
+    alignSelf: 'center',
   },
-  center: {
-    position: 'absolute',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  total: {
-    ...Typography.moneyMedium,
-    color: Colors.dark.textPrimary,
-  },
-  label: {
-    fontFamily: FontFamily.regular,
-    fontSize: 12,
-    color: Colors.dark.textSecondary,
-    marginTop: 2,
-  },
-  noData: {
-    fontFamily: FontFamily.medium,
-    fontSize: 14,
-    color: Colors.dark.textMuted,
+  canvas: {
+    width: CANVAS_SIZE,
+    height: CANVAS_SIZE,
   },
 });
+

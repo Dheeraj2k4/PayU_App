@@ -4,6 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path, ClipPath, Rect } from 'react-native-svg';
 import { Colors } from '../../constants/theme';
 import { FontFamily } from '../../constants/typography';
+import { useTheme } from '../../hooks';
 
 // ─── Built-in icons ───────────────────────────────────────────────────────────
 
@@ -78,6 +79,7 @@ export default function ExpenseItem({
   rightContent,
   onStarPress,
 }: ExpenseItemProps) {
+  const { colors } = useTheme();
   const defaultRight = (
     <>
       <TouchableOpacity
@@ -87,8 +89,8 @@ export default function ExpenseItem({
       >
         <StarSvgIcon />
       </TouchableOpacity>
-      <View style={styles.amountBadge}>
-        <Text style={styles.amountText}>{amount}</Text>
+      <View style={[styles.amountBadge, { backgroundColor: colors.surfaceElevated }]}>
+        <Text style={[styles.amountText, { color: colors.textPrimary }]}>{amount}</Text>
       </View>
     </>
   );
@@ -97,8 +99,8 @@ export default function ExpenseItem({
     <View style={styles.inner}>
       {icon ?? <CardLogoIcon />}
       <View style={styles.info}>
-        <Text style={styles.category}>{category}</Text>
-        <Text style={styles.subtitle}>{subtitle}</Text>
+        <Text style={[styles.category, { color: colors.textPrimary }]}>{category}</Text>
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{subtitle}</Text>
       </View>
       <View style={styles.right}>
         {rightContent ?? defaultRight}
@@ -119,7 +121,7 @@ export default function ExpenseItem({
     );
   }
 
-  return <View style={[styles.card, styles.defaultCard]}>{content}</View>;
+  return <View style={[styles.card, { backgroundColor: colors.surface }]}>{content}</View>;
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
@@ -129,9 +131,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     paddingVertical: 16,
     paddingHorizontal: 16,
-  },
-  defaultCard: {
-    backgroundColor: Colors.dark.surface,
   },
   inner: {
     flexDirection: 'row',
@@ -154,14 +153,12 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.bold,
     fontSize: 14,
     lineHeight: 20,
-    color: Colors.dark.textPrimary,
     letterSpacing: 0.5,
   },
   subtitle: {
     fontFamily: FontFamily.regular,
     fontSize: 12,
     lineHeight: 16,
-    color: Colors.dark.textSecondary,
   },
   right: {
     flexDirection: 'row',
@@ -177,6 +174,5 @@ const styles = StyleSheet.create({
   amountText: {
     fontFamily: FontFamily.semiBold,
     fontSize: 14,
-    color: Colors.dark.textPrimary,
   },
 });

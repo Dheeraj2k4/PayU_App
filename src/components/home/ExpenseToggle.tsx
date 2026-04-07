@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Colors } from '../../constants/theme';
 import { FontFamily } from '../../constants/typography';
+import { useTheme } from '../../hooks';
 
 export type ExpensePeriod = 'weekly' | 'monthly';
 
@@ -11,14 +12,15 @@ interface ExpenseToggleProps {
 }
 
 export default function ExpenseToggle({ active, onChange }: ExpenseToggleProps) {
+  const { colors } = useTheme();
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.surface }]}>
       <TouchableOpacity
         activeOpacity={0.8}
         style={[styles.tab, active === 'weekly' && styles.activeTab]}
         onPress={() => onChange('weekly')}
       >
-        <Text style={[styles.tabText, active === 'weekly' && styles.activeTabText]}>
+        <Text style={[styles.tabText, { color: colors.textSecondary }, active === 'weekly' && styles.activeTabText]}>
           Weekly
         </Text>
       </TouchableOpacity>
@@ -27,7 +29,7 @@ export default function ExpenseToggle({ active, onChange }: ExpenseToggleProps) 
         style={[styles.tab, active === 'monthly' && styles.activeTab]}
         onPress={() => onChange('monthly')}
       >
-        <Text style={[styles.tabText, active === 'monthly' && styles.activeTabText]}>
+        <Text style={[styles.tabText, { color: colors.textSecondary }, active === 'monthly' && styles.activeTabText]}>
           Monthly
         </Text>
       </TouchableOpacity>
@@ -38,7 +40,6 @@ export default function ExpenseToggle({ active, onChange }: ExpenseToggleProps) 
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    backgroundColor: Colors.dark.surface,
     borderRadius: 30,
     padding: 4,
   },
@@ -55,7 +56,6 @@ const styles = StyleSheet.create({
   tabText: {
     fontFamily: FontFamily.medium,
     fontSize: 15,
-    color: Colors.dark.textSecondary,
   },
   activeTabText: {
     fontFamily: FontFamily.semiBold,

@@ -1,11 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, LayoutChangeEvent } from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, withDelay, Easing } from 'react-native-reanimated';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Colors } from '../../constants/theme';
 import { FontFamily } from '../../constants/typography';
 import { formatCurrency } from '../../utils/currency';
 import { CategoryData } from './types';
 import { useTheme } from '../../hooks';
+
+const CATEGORY_ICONS: Record<string, React.ComponentProps<typeof MaterialCommunityIcons>['name']> = {
+  food: 'food-fork-drink',
+  travel: 'airplane',
+  shopping: 'shopping',
+  health: 'pill',
+  entertainment: 'movie-outline',
+  bills: 'receipt',
+  salary: 'cash',
+  investment: 'trending-up',
+  other: 'dots-horizontal',
+};
 
 // ── AnimatedCategoryRow ───────────────────────────────────────────────────────
 
@@ -35,7 +48,11 @@ function AnimatedCategoryRow({ item, amountColor }: RowProps) {
   return (
     <View style={styles.row}>
       <View style={[styles.iconWrap, { backgroundColor: `${item.color}26` }]}>
-        <Text style={styles.icon}>{item.icon}</Text>
+        <MaterialCommunityIcons
+          name={CATEGORY_ICONS[item.id] ?? 'dots-horizontal'}
+          size={20}
+          color={item.color}
+        />
       </View>
       <View style={styles.info}>
         <View style={styles.labelRow}>

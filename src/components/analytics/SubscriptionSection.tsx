@@ -1,17 +1,34 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Colors } from '../../constants/theme';
 import { FontFamily } from '../../constants/typography';
 import { formatCurrency } from '../../utils/currency';
 import { SubscriptionItem } from './types';
 import { useTheme } from '../../hooks';
 
+const CATEGORY_ICONS: Record<string, React.ComponentProps<typeof MaterialCommunityIcons>['name']> = {
+  food: 'food-fork-drink',
+  travel: 'airplane',
+  shopping: 'shopping',
+  health: 'pill',
+  entertainment: 'movie-outline',
+  bills: 'receipt',
+  salary: 'cash',
+  investment: 'trending-up',
+  other: 'dots-horizontal',
+};
+
 function SubscriptionRow({ item }: { item: SubscriptionItem }) {
   const { colors } = useTheme();
   return (
     <View style={styles.row}>
       <View style={[styles.iconWrap, { backgroundColor: `${item.color}26` }]}>
-        <Text style={styles.icon}>{item.icon}</Text>
+        <MaterialCommunityIcons
+          name={CATEGORY_ICONS[item.id] ?? 'dots-horizontal'}
+          size={20}
+          color={item.color}
+        />
       </View>
       <Text style={[styles.label, { color: colors.textPrimary }]}>{item.label}</Text>
       <View style={styles.badge}>
