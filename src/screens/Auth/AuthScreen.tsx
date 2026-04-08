@@ -29,7 +29,7 @@ export default function AuthScreen() {
   const { colors } = useTheme();
 
   const handleSignIn = (data: { email: string; password: string }) => {
-    navigation.replace('Main');
+    navigation.reset({ index: 0, routes: [{ name: 'Main' }] });
   };
 
   const handleSignUp = (data: {
@@ -38,7 +38,7 @@ export default function AuthScreen() {
     password: string;
     confirmPassword: string;
   }) => {
-    navigation.replace('Main');
+    navigation.reset({ index: 0, routes: [{ name: 'Main' }] });
   };
 
   return (
@@ -58,8 +58,8 @@ export default function AuthScreen() {
           {/* Hero */}
           <View style={styles.hero}>
             <AppLogo />
-            <Text style={styles.heroTitle}>Welcome to PayU</Text>
-            <Text style={styles.heroSubtitle}>
+            <Text style={[styles.heroTitle, { color: colors.textPrimary }]}>Welcome to PayU</Text>
+            <Text style={[styles.heroSubtitle, { color: colors.textSecondary }]} numberOfLines={1} adjustsFontSizeToFit>
               Send money globally with the real exchange rate
             </Text>
           </View>
@@ -69,8 +69,9 @@ export default function AuthScreen() {
               {/* Card header */}
               <View style={styles.cardHeader}>
                 <Text style={[styles.cardHeading, { color: colors.textPrimary }]}>Get started</Text>
-                <Text style={[styles.cardSubheading, { color: colors.textSecondary }]}>
-              </Text>
+                <Text style={[styles.cardSubheading, { color: colors.textSecondary }]} numberOfLines={1} adjustsFontSizeToFit>
+                  Sign in to your account or create a new one
+                </Text>
             </View>
 
             {/* Tab switcher */}
@@ -113,15 +114,14 @@ const styles = StyleSheet.create({
   },
   heroTitle: {
     ...Typography.headingLarge,
-    fontSize: 28,
+    fontSize: 24,
     color: Colors.dark.textPrimary,
     textAlign: 'center',
   },
   heroSubtitle: {
-    ...Typography.bodyMedium,
+    ...Typography.bodyLarge,
     color: Colors.dark.textSecondary,
     textAlign: 'center',
-    paddingHorizontal: 16,
   },
 
   // ── Card ──────────────────────────────────────────────────────────────
@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
     color: Colors.dark.textPrimary,
   },
   cardSubheading: {
-    ...Typography.bodyMedium,
+    ...Typography.bodyLarge,
     color: Colors.dark.textSecondary,
   },
 });

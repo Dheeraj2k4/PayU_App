@@ -17,13 +17,13 @@ export default function SummaryCards({ totalIncome, totalExpense, balance }: Sum
     <View style={styles.row}>
       <View style={[styles.card, { backgroundColor: colors.surface }]}>
         <Text style={[styles.label, { color: colors.textSecondary }]}>Income</Text>
-        <Text style={[styles.amount, { color: Colors.teal }]}>
+        <Text style={[styles.amount, { color: colors.textPrimary }]}>
           {formatCurrency(totalIncome)}
         </Text>
       </View>
       <View style={[styles.card, { backgroundColor: colors.surface }]}>
         <Text style={[styles.label, { color: colors.textSecondary }]}>Expenses</Text>
-        <Text style={[styles.amount, { color: '#F87171' }]}>
+        <Text style={[styles.amount, { color: colors.textPrimary }]}>
           {formatCurrency(totalExpense)}
         </Text>
       </View>

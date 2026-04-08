@@ -65,9 +65,6 @@ export default function HomeScreen() {
             onNotificationPress={() => navigation.navigate('Notifications')}
           />
 
-          {/* Divider */}
-          <View style={[styles.divider, { backgroundColor: colors.border }]} />
-
           <View style={styles.body}>
             {/* Greeting */}
             <View style={styles.greeting}>
@@ -75,23 +72,6 @@ export default function HomeScreen() {
               <Text style={[styles.greetingSubtitle, { color: colors.textSecondary }]}>Add your yesterday's expense</Text>
             </View>
 
-            {/* Balance summary row
-            {recentTransactions.length > 0 && (
-              <View style={styles.balanceRow}>
-                <View style={[styles.miniCard, { borderColor: `${Colors.income}44` }]}>
-                  <Text style={styles.miniLabel}>Income</Text>
-                  <Text style={[styles.miniAmount, { color: Colors.income }]}>
-                    {formatCurrency(currentMonthSummary.totalIncome)}
-                  </Text>
-                </View>
-                <View style={[styles.miniCard, { borderColor: `${Colors.expense}44` }]}>
-                  <Text style={styles.miniLabel}>Expenses</Text>
-                  <Text style={[styles.miniAmount, { color: Colors.expense }]}>
-                    {formatCurrency(currentMonthSummary.totalExpenses)}
-                  </Text>
-                </View>
-              </View>
-            )} */}
 
             {/* Bank card */}
             <BankCard
@@ -169,8 +149,8 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   greetingName: {
-    ...Typography.headingLarge,
-    fontSize: 26,
+    ...Typography.displayLarge,
+    fontSize: 20,
     color: Colors.dark.textPrimary,
   },
   greetingSubtitle: {
@@ -181,8 +161,8 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   expensesTitle: {
-    fontFamily: FontFamily.semiBold,
-    fontSize: 18,
+    ...Typography.displayLarge,
+    fontSize: 16,
     lineHeight: 26,
     color: Colors.dark.textPrimary,
   },

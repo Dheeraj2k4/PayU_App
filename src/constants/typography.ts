@@ -34,7 +34,7 @@ export const Typography = {
     fontFamily:    FontFamily.semiBold,
     fontSize:      48,
     lineHeight:    58,
-    letterSpacing: -2,
+    letterSpacing: 0.5,
   } as TextStyle,
 
   // font-weight: 400 | font-size: 16 | line-height: 24 | letter-spacing: -0.31
@@ -48,7 +48,7 @@ export const Typography = {
   // font-weight: 400 | font-size: 14 | line-height: 20 | letter-spacing: -0.15
   bodyMedium: {
     fontFamily:    FontFamily.regular,
-    fontSize:      14,
+    fontSize:      16,
     lineHeight:    20,
     letterSpacing: -0.15,
   } as TextStyle,

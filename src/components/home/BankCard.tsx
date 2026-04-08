@@ -83,9 +83,11 @@ export default function BankCard({
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 20,
+    borderRadius: 16,
+    height: 218,
+    marginHorizontal: 16,
     padding: 22,
-    gap: 20,
+    justifyContent: 'space-between',
   },
   topRow: {
     flexDirection: 'row',

@@ -24,22 +24,22 @@ import { useTheme } from '../../hooks';
 const W = 320;
 const H = 215;
 const CX = W / 2;
-const CY = H - 20;       // arc pivot near the bottom edge
-const RADIUS = 132;
-const DOT_RADIUS = RADIUS -24; // outside the arc stroke band so dots are visible
+const CY = H - 20;       
+const RADIUS = 142;
 const ARC_W = 22;
-const INDICATOR_R = 15;
-const INDICATOR_INNER = 10;
-const DOT_R = 2.5;
-const NUM_DOTS = 40;
+const BG_RADIUS = RADIUS - 24; 
+const BG_ARC_W = 2;           
+const LARGE_R = 16;   
+const WHITE_R = 6;    
+const BG_SEGMENTS = 60;
 const MAX_SCORE = 900;
 const START_DEG = 180;
 const SWEEP_DEG = 180;
 
 const SEGMENTS = [
-  { upTo: 475, color: '#3BB9A1' },  // teal  (left)
-  { upTo: 660, color: '#EE89DF' },  // pink
-  { upTo: 800, color: '#74B8EF' },  // blue
+  { upTo: 425, color: '#3BB9A1' },  // teal  (left)
+  { upTo: 600, color: '#EE89DF' },  // pink
+  { upTo: 740, color: '#74B8EF' },  // blue
   { upTo: 950, color: '#FBDE9D' },  // yellow (right)
 ];
 
@@ -87,15 +87,19 @@ export default function CreditScoreGauge({
   const { colors } = useTheme();
   const activeColor = segmentColor(score);
 
-  // Dotted background — small circles evenly distributed along arc
-  const dotPath = useMemo(() => {
-    const p = Skia.Path.Make();
-    for (let i = 0; i < NUM_DOTS; i++) {
-      const frac = i / (NUM_DOTS - 1);
-      const rad = ((START_DEG + frac * SWEEP_DEG) * Math.PI) / 180;
-      p.addCircle(CX + DOT_RADIUS * Math.cos(rad), CY + DOT_RADIUS * Math.sin(rad), DOT_R);
-    }
-    return p;
+  // 21 grey square-ended background segments on inner track
+  const bgSegmentPaths = useMemo(() => {
+    const GAP = 2;
+    const SEG = (SWEEP_DEG - GAP * (BG_SEGMENTS - 1)) / BG_SEGMENTS;
+    return Array.from({ length: BG_SEGMENTS }, (_, i) => {
+      const p = Skia.Path.Make();
+      p.addArc(
+        { x: CX - BG_RADIUS, y: CY - BG_RADIUS, width: BG_RADIUS * 2, height: BG_RADIUS * 2 },
+        START_DEG + i * (SEG + GAP),
+        SEG,
+      );
+      return p;
+    });
   }, []);
 
   // Faded segment arcs
@@ -135,6 +139,9 @@ export default function CreditScoreGauge({
     () => CY + RADIUS * Math.sin(degToRad(scoreAngleDeg(progress.value))),
   );
 
+  // Radial unit vector — points outward from arc center through the arc point
+  const angleRad = useDerivedValue(() => degToRad(scoreAngleDeg(progress.value)));
+
   const font = useFont(require('../../../assets/fonts/Inter_700Bold.ttf'), 48);
   if (!font) return <View style={{ width: W, height: H + 60 }} />;
 
@@ -144,8 +151,10 @@ export default function CreditScoreGauge({
   return (
     <View style={styles.wrapper}>
       <Canvas style={{ width: W, height: H }}>
-        {/* Dotted background track */}
-        <Path path={dotPath} color={colors.border} style="fill" />
+        {/* 21 grey square-ended background segments on inner track */}
+        {bgSegmentPaths.map((p, i) => (
+          <Path key={i} path={p} style="stroke" strokeWidth={BG_ARC_W} strokeCap="butt" color="#A1A1A1" />
+        ))}
 
         {/* Faded segment arcs (all segments always visible at low opacity) */}
         {segmentPaths.map((seg, i) => (
@@ -159,17 +168,15 @@ export default function CreditScoreGauge({
           />
         ))}
 
-        {/* Indicator: outer glow */}
-        <Circle cx={indicatorCx} cy={indicatorCy} r={INDICATOR_R} color={`${activeColor}50`} />
-        {/* Indicator: white center dot — below solid fill */}
-        <Circle cx={indicatorCx} cy={indicatorCy} r={5} color="#FFFFFF" />
-        {/* Indicator: solid fill — on top */}
-        <Circle cx={indicatorCx} cy={indicatorCy} r={INDICATOR_INNER} color={activeColor} />
+        {/* Indicator: large body circle — centered on arc point */}
+        <Circle cx={indicatorCx} cy={indicatorCy} r={LARGE_R} color={activeColor} />
+        {/* Indicator: white dot — centered inside the large circle */}
+        <Circle cx={indicatorCx} cy={indicatorCy} r={WHITE_R} color="#FFFFFF" />
 
         {/* Score number centered in arc */}
         <SkiaText
           x={CX - scoreW / 2}
-          y={CY - 48}
+          y={CY - 10}
           text={scoreStr}
           font={font}
           color={colors.textPrimary}
@@ -195,14 +202,14 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   label: {
-    fontFamily: FontFamily.bold,
-    fontSize: 16,
+    fontFamily: FontFamily.semiBold,
+    fontSize: 14,
     textAlign: 'center',
     marginTop: -10,
   },
   sub: {
-    fontFamily: FontFamily.regular,
-    fontSize: 14,
+    fontFamily: FontFamily.medium,
+    fontSize: 12,
     textAlign: 'center',
   },
 });

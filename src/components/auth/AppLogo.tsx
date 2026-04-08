@@ -13,17 +13,17 @@ export default function AppLogo() {
 
 const styles = StyleSheet.create({
   logoBox: {
-    width: 72,
-    height: 72,
-    borderRadius: 20,
-    backgroundColor: Colors.light.background,
+    width: 64,
+    height: 64,
+    borderRadius: 16,
+    backgroundColor: Colors.dark.background,
     alignItems: 'center',
     justifyContent: 'center',
   },
   logoLetter: {
     fontFamily: FontFamily.bold,
-    fontSize: 32,
-    color: Colors.dark.background,
+    fontSize: 24,
+    color: Colors.light.background,
     lineHeight: 38,
   },
 });

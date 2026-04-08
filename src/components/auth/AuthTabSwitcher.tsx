@@ -1,78 +1,30 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import SegmentedControl from '../common/SegmentedControl';
 import { Colors } from '../../constants/theme';
-import { FontFamily } from '../../constants/typography';
+import { useTheme } from '../../hooks';
 
 export type AuthTab = 'sign-in' | 'sign-up';
+
+const OPTIONS = [
+  { value: 'sign-in' as const, label: 'Sign In' },
+  { value: 'sign-up' as const, label: 'Sign Up' },
+];
 
 interface AuthTabSwitcherProps {
   activeTab: AuthTab;
   onTabChange: (tab: AuthTab) => void;
 }
 
-export default function AuthTabSwitcher({
-  activeTab,
-  onTabChange,
-}: AuthTabSwitcherProps) {
+export default function AuthTabSwitcher({ activeTab, onTabChange }: AuthTabSwitcherProps) {
+  const { isDark } = useTheme();
   return (
-    <View style={styles.container}>
-      <TouchableOpacity
-        activeOpacity={0.8}
-        style={[styles.tab, activeTab === 'sign-in' && styles.activeTab]}
-        onPress={() => onTabChange('sign-in')}
-      >
-        <Text
-          style={[
-            styles.tabText,
-            activeTab === 'sign-in' && styles.activeTabText,
-          ]}
-        >
-          Sign In
-        </Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        activeOpacity={0.8}
-        style={[styles.tab, activeTab === 'sign-up' && styles.activeTab]}
-        onPress={() => onTabChange('sign-up')}
-      >
-        <Text
-          style={[
-            styles.tabText,
-            activeTab === 'sign-up' && styles.activeTabText,
-          ]}
-        >
-          Sign Up
-        </Text>
-      </TouchableOpacity>
-    </View>
+    <SegmentedControl
+      options={OPTIONS}
+      value={activeTab}
+      onChange={onTabChange}
+      trackColor={isDark ? '#262626' : Colors.light.background}
+      pillColor={isDark ? Colors.light.background : Colors.dark.background}
+      activeTextColor={isDark ? Colors.dark.background : Colors.light.background}
+    />
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    backgroundColor: Colors.dark.background,
-    borderRadius: 22,
-    padding: 4,
-  },
-  tab: {
-    flex: 1,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 18,
-  },
-  activeTab: {
-    backgroundColor: Colors.light.background,
-  },
-  tabText: {
-    fontFamily: FontFamily.medium,
-    fontSize: 15,
-    color: Colors.dark.textSecondary,
-  },
-  activeTabText: {
-    fontFamily: FontFamily.semiBold,
-    color: Colors.dark.background,
-  },
-});

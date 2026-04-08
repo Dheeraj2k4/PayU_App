@@ -1,34 +1,29 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Colors } from '../../constants/theme';
 import { FontFamily } from '../../constants/typography';
 import { formatCurrency } from '../../utils/currency';
 import { SubscriptionItem } from './types';
 import { useTheme } from '../../hooks';
+import { getServiceIcon } from '../common/ServiceIcons';
 
-const CATEGORY_ICONS: Record<string, React.ComponentProps<typeof MaterialCommunityIcons>['name']> = {
-  food: 'food-fork-drink',
-  travel: 'airplane',
-  shopping: 'shopping',
-  health: 'pill',
-  entertainment: 'movie-outline',
-  bills: 'receipt',
-  salary: 'cash',
-  investment: 'trending-up',
-  other: 'dots-horizontal',
-};
+// ── Component ─────────────────────────────────────────────────────────────────
 
 function SubscriptionRow({ item }: { item: SubscriptionItem }) {
   const { colors } = useTheme();
+
+  // Use brand colors for known services
+  const l = item.label.toLowerCase();
+  const iconBg = l.includes('spotify')
+    ? '#1DB95422'
+    : l.includes('google')
+    ? '#4285F422'
+    : `${item.color}26`;
+
   return (
     <View style={styles.row}>
-      <View style={[styles.iconWrap, { backgroundColor: `${item.color}26` }]}>
-        <MaterialCommunityIcons
-          name={CATEGORY_ICONS[item.id] ?? 'dots-horizontal'}
-          size={20}
-          color={item.color}
-        />
+      <View style={[styles.iconWrap, { backgroundColor: iconBg }]}>
+        {getServiceIcon(item.label, item.color)}
       </View>
       <Text style={[styles.label, { color: colors.textPrimary }]}>{item.label}</Text>
       <View style={styles.badge}>
@@ -84,14 +79,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  icon: {
-    fontSize: 18,
-  },
   label: {
     flex: 1,
     fontFamily: FontFamily.medium,
     fontSize: 14,
-    color: Colors.dark.textPrimary,
   },
   badge: {
     paddingHorizontal: 9,
@@ -111,7 +102,6 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: Colors.dark.border,
     marginVertical: 14,
   },
   totalRow: {
@@ -122,17 +112,14 @@ const styles = StyleSheet.create({
   totalLabel: {
     fontFamily: FontFamily.medium,
     fontSize: 15,
-    color: Colors.dark.textSecondary,
   },
   totalAmount: {
     fontFamily: FontFamily.semiBold,
     fontSize: 15,
-    color: Colors.dark.textPrimary,
     fontVariant: ['tabular-nums'],
   },
   empty: {
     fontFamily: FontFamily.regular,
     fontSize: 14,
-    color: Colors.dark.textMuted,
   },
 });

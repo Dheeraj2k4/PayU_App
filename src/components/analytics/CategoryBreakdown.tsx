@@ -7,6 +7,7 @@ import { FontFamily } from '../../constants/typography';
 import { formatCurrency } from '../../utils/currency';
 import { CategoryData } from './types';
 import { useTheme } from '../../hooks';
+import { getServiceIcon } from '../common/ServiceIcons';
 
 const CATEGORY_ICONS: Record<string, React.ComponentProps<typeof MaterialCommunityIcons>['name']> = {
   food: 'food-fork-drink',
@@ -48,11 +49,13 @@ function AnimatedCategoryRow({ item, amountColor }: RowProps) {
   return (
     <View style={styles.row}>
       <View style={[styles.iconWrap, { backgroundColor: `${item.color}26` }]}>
-        <MaterialCommunityIcons
-          name={CATEGORY_ICONS[item.id] ?? 'dots-horizontal'}
-          size={20}
-          color={item.color}
-        />
+        {['bills', 'entertainment', 'other'].includes(item.id)
+          ? getServiceIcon(item.label, item.color, 20)
+          : <MaterialCommunityIcons
+              name={CATEGORY_ICONS[item.id] ?? 'dots-horizontal'}
+              size={20}
+              color={item.color}
+            />}
       </View>
       <View style={styles.info}>
         <View style={styles.labelRow}>

@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, ScrollView, StyleSheet, KeyboardAvoidingView, Platform, Switch } from 'react-native';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { View, Text, ScrollView, StyleSheet, KeyboardAvoidingView, Platform, Switch, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -18,6 +18,8 @@ import ProfileEditForm from '../../components/profile/ProfileEditForm';
 import FAB from '../../components/common/FAB';
 import AddTransactionSheet, { AddTransactionSheetRef } from '../../components/home/AddTransactionSheet';
 import { useUserContext } from '../../store';
+import { useTransactionContext } from '../../store';
+import { formatCurrency } from '../../utils/currency';
 import { Colors } from '../../constants/theme';
 import { FontFamily } from '../../constants/typography';
 import { useTheme } from '../../hooks';
@@ -26,10 +28,30 @@ export default function ProfileScreen() {
   const sheetRef = useRef<AddTransactionSheetRef>(null);
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { profile, updateProfile } = useUserContext();
+  const { transactions } = useTransactionContext();
   const { colors, isDark, setMode } = useTheme();
   const [activeTab, setActiveTab] = useState<ProfileTab>('preview');
   const [name, setName] = useState(profile.name);
   const [email, setEmail] = useState(profile.email);
+
+  // Keep local display state in sync when profile loads from AsyncStorage
+  useEffect(() => {
+    setName(profile.name);
+    setEmail(profile.email);
+  }, [profile.name, profile.email]);
+
+  const totalExpenses = transactions.reduce(
+    (sum, tx) => (tx.type === 'expense' ? sum + tx.amount : sum), 0,
+  );
+  const totalIncome = transactions.reduce(
+    (sum, tx) => (tx.type === 'income' ? sum + tx.amount : sum), 0,
+  );
+  const balance = totalIncome - totalExpenses;
+
+  const notificationCount = useMemo(
+    () => transactions.filter((tx) => tx.isRecurring && tx.type === 'expense').length,
+    [transactions],
+  );
 
   const contentOpacity = useSharedValue(1);
   const contentAnimStyle = useAnimatedStyle(() => ({ opacity: contentOpacity.value }));
@@ -80,12 +102,10 @@ export default function ProfileScreen() {
           >
             {/* Header — shared with HomeScreen */}
             <HomeHeader
-              notificationCount={0}
+              notificationCount={notificationCount}
               onSearchPress={() => navigation.navigate('Search')}
               onNotificationPress={() => navigation.navigate('Notifications')}
             />
-
-            <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
             {/* Avatar + name */}
             <ProfileAvatar name={name} />
@@ -98,9 +118,9 @@ export default function ProfileScreen() {
               <Animated.View style={contentAnimStyle}>
                 {activeTab === 'preview' ? (
                   <ProfilePreview
-                    totalSpendings="$2000"
+                    totalSpendings={formatCurrency(totalExpenses)}
                     email={email}
-                    balance="$20000"
+                    balance={formatCurrency(balance)}
                   />
                 ) : (
                   <ProfileEditForm
@@ -112,18 +132,30 @@ export default function ProfileScreen() {
               </Animated.View>
 
               {activeTab === 'preview' && (
-                <View style={[styles.settingsCard, { backgroundColor: colors.surface }]}>
-                  <Text style={[styles.settingsLabel, { color: colors.textSecondary }]}>Appearance</Text>
-                  <View style={styles.themeRow}>
-                    <Text style={[styles.themeLabel, { color: colors.textPrimary }]}>Dark Mode</Text>
-                    <Switch
-                      value={isDark}
-                      onValueChange={(val) => setMode(val ? 'dark' : 'light')}
-                      trackColor={{ false: colors.surfaceElevated, true: Colors.teal }}
-                      thumbColor={colors.background}
-                    />
+                <>
+                  <View style={[styles.settingsCard, { backgroundColor: colors.surface }]}>
+                    <Text style={[styles.settingsLabel, { color: colors.textSecondary }]}>Appearance</Text>
+                    <View style={styles.themeRow}>
+                      <Text style={[styles.themeLabel, { color: colors.textPrimary }]}>Dark Mode</Text>
+                      <Switch
+                        value={isDark}
+                        onValueChange={(val) => setMode(val ? 'dark' : 'light')}
+                        trackColor={{ false: colors.surfaceElevated, true: Colors.teal }}
+                        thumbColor={colors.background}
+                      />
+                    </View>
                   </View>
-                </View>
+
+                  <TouchableOpacity
+                    style={[styles.logoutBtn, { backgroundColor: colors.surface }]}
+                    onPress={() =>
+                      navigation.reset({ index: 0, routes: [{ name: 'Auth' }] })
+                    }
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.logoutText}>Log Out</Text>
+                  </TouchableOpacity>
+                </>
               )}
             </View>
           </ScrollView>
@@ -176,5 +208,16 @@ const styles = StyleSheet.create({
   themeLabel: {
     fontFamily: FontFamily.medium,
     fontSize: 15,
+  },
+  logoutBtn: {
+    borderRadius: 16,
+    padding: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logoutText: {
+    fontFamily: FontFamily.semiBold,
+    fontSize: 15,
+    color: Colors.error,
   },
 });

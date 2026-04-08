@@ -1,4 +1,7 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const PROFILE_KEY = '@finance_user_profile';
 
 interface UserProfile {
   name: string;
@@ -18,8 +21,23 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     email: 'alex@gmail.com',
   });
 
+  // Load persisted profile on mount
+  useEffect(() => {
+    AsyncStorage.getItem(PROFILE_KEY).then((raw) => {
+      if (raw) {
+        try {
+          setProfile((prev) => ({ ...prev, ...JSON.parse(raw) }));
+        } catch {}
+      }
+    });
+  }, []);
+
   const updateProfile = (data: Partial<UserProfile>) => {
-    setProfile((prev) => ({ ...prev, ...data }));
+    setProfile((prev) => {
+      const next = { ...prev, ...data };
+      AsyncStorage.setItem(PROFILE_KEY, JSON.stringify(next));
+      return next;
+    });
   };
 
   return (

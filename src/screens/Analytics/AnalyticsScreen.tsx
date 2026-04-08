@@ -1,6 +1,8 @@
 ﻿import React, { useState, useMemo, useCallback, useRef } from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
 import Animated, {
   useSharedValue,
@@ -14,7 +16,9 @@ import { useTransactionContext } from '../../store';
 import { getCategoryById } from '../../constants/categories';
 import { useTheme } from '../../hooks';
 import FAB from '../../components/common/FAB';
+import HomeHeader from '../../components/home/HomeHeader';
 import AddTransactionSheet, { AddTransactionSheetRef } from '../../components/home/AddTransactionSheet';
+import { RootStackParamList } from '../../navigation/AppNavigator';
 import {
   DonutChart,
   CategoryBreakdown,
@@ -33,8 +37,8 @@ const MONTH_NAMES = [
 ];
 
 export default function AnalyticsScreen() {
-  const insets = useSafeAreaInsets();
   const sheetRef = useRef<AddTransactionSheetRef>(null);
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { transactions } = useTransactionContext();
   const { colors } = useTheme();
 
@@ -46,19 +50,11 @@ export default function AnalyticsScreen() {
   const contentOpacity = useSharedValue(1);
   const contentTranslateY = useSharedValue(0);
   const monthLabelOpacity = useSharedValue(1);
-  const toggleAnim = useSharedValue(0);
-  const toggleContainerWidth = useSharedValue(0);
-
   const contentStyle = useAnimatedStyle(() => ({
     opacity: contentOpacity.value,
     transform: [{ translateY: contentTranslateY.value }],
   }));
   const monthLabelStyle = useAnimatedStyle(() => ({ opacity: monthLabelOpacity.value }));
-  const pillStyle = useAnimatedStyle(() => {
-    const cw = toggleContainerWidth.value;
-    if (cw === 0) return { width: 0, transform: [{ translateX: 0 }] };
-    return { width: cw / 2 - 8, transform: [{ translateX: toggleAnim.value * (cw / 2) }] };
-  });
 
   // ── Data ──────────────────────────────────────────────────────────────────
   useFocusEffect(useCallback(() => {}, []));
@@ -90,6 +86,11 @@ export default function AnalyticsScreen() {
   );
   const balance = totalIncome - totalExpense;
 
+  const notificationCount = useMemo(
+    () => transactions.filter((tx) => tx.isRecurring && tx.type === 'expense').length,
+    [transactions],
+  );
+
   const activeTxs = activeTab === 'expenses' ? expenseTransactions : incomeTransactions;
   const activeTotal = activeTab === 'expenses' ? totalExpense : totalIncome;
 
@@ -115,7 +116,7 @@ export default function AnalyticsScreen() {
         return {
           id: tx.id,
           icon: cat.icon,
-          label: cat.label,
+          label: tx.note?.trim() || cat.label,
           color: cat.color,
           amount: tx.amount,
           recurringFrequency: tx.recurringFrequency ?? 'monthly',
@@ -161,7 +162,6 @@ export default function AnalyticsScreen() {
 
   const handleTabChange = useCallback((tab: 'expenses' | 'income') => {
     setActiveTab(tab);
-    toggleAnim.value = withTiming(tab === 'expenses' ? 0 : 1, { duration: 220 });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -169,16 +169,17 @@ export default function AnalyticsScreen() {
   const triggerKey = `${selected.year}-${selected.month}-${activeTab}-${categoryData.length}-${Math.round(activeTotal)}`;
 
   return (
-    <Animated.View style={[styles.root, { paddingTop: insets.top, backgroundColor: colors.background }]}>
+    <SafeAreaView style={[styles.root, { backgroundColor: colors.background }]} edges={['top']}>
+      <HomeHeader
+        notificationCount={notificationCount}
+        onSearchPress={() => navigation.navigate('Search')}
+        onNotificationPress={() => navigation.navigate('Notifications')}
+      />
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 90 }]}
+        contentContainerStyle={styles.scroll}
       >
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={[styles.title, { color: colors.textPrimary }]}>Analytics</Text>
-          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{monthLabel}</Text>
-        </View>
+        
 
         {/* Month selector */}
         <View style={[styles.card, { backgroundColor: colors.surface }]}>
@@ -204,8 +205,6 @@ export default function AnalyticsScreen() {
                 <ExpenseIncomeToggle
                   activeTab={activeTab}
                   onTabChange={handleTabChange}
-                  pillStyle={pillStyle}
-                  onContainerLayout={(w) => { toggleContainerWidth.value = w; }}
                 />
               </View>
 
@@ -233,7 +232,7 @@ export default function AnalyticsScreen() {
 
       <FAB onPress={() => sheetRef.current?.open()} />
       <AddTransactionSheet ref={sheetRef} />
-    </Animated.View>
+    </SafeAreaView>
   );
 }
 
@@ -244,6 +243,7 @@ const styles = StyleSheet.create({
   },
   scroll: {
     paddingHorizontal: 20,
+    paddingBottom: 100,
   },
   header: {
     paddingTop: 20,

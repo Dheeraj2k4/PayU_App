@@ -1,4 +1,4 @@
-import React, { useRef, useMemo } from 'react';
+import React, { useRef, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -43,16 +43,35 @@ function FlagIcon() {
   );
 }
 
-function CurrencyRight() {
+function CurrencyRight({
+  starred,
+  onStarPress,
+  enabled,
+  onEnablePress,
+}: {
+  starred: boolean;
+  onStarPress: () => void;
+  enabled: boolean;
+  onEnablePress: () => void;
+}) {
   const { colors } = useTheme();
   return (
     <>
-      <TouchableOpacity activeOpacity={0.7} style={styles.starBtn}>
-        <StarSvgIcon />
+      <TouchableOpacity activeOpacity={0.7} style={styles.starBtn} onPress={onStarPress}>
+        <StarSvgIcon filled={starred} />
       </TouchableOpacity>
-      <TouchableOpacity activeOpacity={0.7} style={[styles.enableBtn, { backgroundColor: colors.surfaceElevated }]}>
-        <PlusSmallIcon />
-        <Text style={[styles.enableText, { color: colors.textPrimary }]}>Enable</Text>
+      <TouchableOpacity
+        activeOpacity={0.7}
+        style={[
+          styles.enableBtn,
+          { backgroundColor: enabled ? Colors.teal : colors.surfaceElevated },
+        ]}
+        onPress={onEnablePress}
+      >
+        {!enabled && <PlusSmallIcon />}
+        <Text style={[styles.enableText, { color: enabled ? '#fff' : colors.textPrimary }]}>
+          {enabled ? 'Enabled' : 'Enable'}
+        </Text>
       </TouchableOpacity>
     </>
   );
@@ -71,9 +90,11 @@ export default function BalancesScreen() {
     [transactions],
   );
   const { colors } = useTheme();
+  const [starred, setStarred] = useState(false);
+  const [enabled, setEnabled] = useState(false);
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['top']}>
       <HomeHeader
         notificationCount={notificationCount}
         onSearchPress={() => navigation.navigate('Search')}
@@ -102,7 +123,14 @@ export default function BalancesScreen() {
             subtitle="Canadian Dollar"
             amount=""
             icon={<FlagIcon />}
-            rightContent={<CurrencyRight />}
+            rightContent={
+              <CurrencyRight
+                starred={starred}
+                onStarPress={() => setStarred((s) => !s)}
+                enabled={enabled}
+                onEnablePress={() => setEnabled((e) => !e)}
+              />
+            }
           />
         </View>
 
@@ -135,11 +163,12 @@ const styles = StyleSheet.create({
 
   // Title
   titleBlock: {
-    gap: 4,
+    gap: -2,
   },
   title: {
-    ...Typography.headingLarge,
+    ...Typography.displayLarge,
     color: Colors.dark.textPrimary,
+    fontSize: 20,
   },
   subtitle: {
     ...Typography.bodyMedium,
@@ -148,10 +177,10 @@ const styles = StyleSheet.create({
 
   // Section
   section: {
-    gap: 14,
+    gap: 2,
   },
   sectionTitle: {
-    fontFamily: FontFamily.semiBold,
+    ...Typography.displayLarge,
     fontSize: 16,
     color: Colors.dark.textPrimary,
   },

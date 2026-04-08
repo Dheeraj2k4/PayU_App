@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -7,22 +7,32 @@ import {
   StyleSheet,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Colors } from '../../constants/theme';
 import { FontFamily, Typography } from '../../constants/typography';
 import { useTransactions, useTheme } from '../../hooks';
 import { TransactionList } from '../../components/transactions';
+import HomeHeader from '../../components/home/HomeHeader';
 import AddTransactionSheet, { AddTransactionSheetRef } from '../../components/home/AddTransactionSheet';
 import FAB from '../../components/common/FAB';
 import { formatCurrency } from '../../utils/currency';
 import { Transaction } from '../../types';
+import { RootStackParamList } from '../../navigation/AppNavigator';
 
 type Filter = 'all' | 'income' | 'expense';
 
 export default function TransactionsScreen() {
   const { transactions, deleteTransaction, currentMonthSummary } = useTransactions();
   const { colors } = useTheme();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const sheetRef = useRef<AddTransactionSheetRef>(null);
   const [filter, setFilter] = useState<Filter>('all');
+
+  const notificationCount = useMemo(
+    () => transactions.filter((tx) => tx.isRecurring && tx.type === 'expense').length,
+    [transactions],
+  );
 
   const filtered: Transaction[] =
     filter === 'all'
@@ -34,10 +44,11 @@ export default function TransactionsScreen() {
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['top']}>
       <View style={styles.flex}>
-        {/* Header */}
-        <View style={[styles.header, { borderBottomColor: colors.border }]}>
-          <Text style={[styles.screenTitle, { color: colors.textPrimary }]}>Transactions</Text>
-        </View>
+        <HomeHeader
+          notificationCount={notificationCount}
+          onSearchPress={() => navigation.navigate('Search')}
+          onNotificationPress={() => navigation.navigate('Notifications')}
+        />
 
         <ScrollView
           style={styles.flex}

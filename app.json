@@ -4,28 +4,28 @@
     "slug": "FinanceManager",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/appicon/Screenshot 2026-04-08 225849.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/appicon/Screenshot 2026-04-08 225849.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#0A0A0A"
     },
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/appicon/Screenshot 2026-04-08 225849.png",
+        "backgroundColor": "#0A0A0A"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "package": "com.dheerxj1.FinanceManager"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/appicon/Screenshot 2026-04-08 225849.png"
     },
     "plugins": [
       "expo-font"

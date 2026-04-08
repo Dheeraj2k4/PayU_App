@@ -13,6 +13,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Colors } from '../../constants/theme';
 import { FontFamily } from '../../constants/typography';
+import { useTheme } from '../../hooks';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost';
 
@@ -33,17 +34,22 @@ export default function Button({
   loading = false,
   style,
 }: ButtonProps) {
+  const { colors, isDark } = useTheme();
   const scale = useSharedValue(1);
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
   }));
 
+  // Primary: dark-on-light in light mode, light-on-dark in dark mode
+  const primaryBg = isDark ? Colors.light.background : Colors.dark.background;
+  const primaryText = isDark ? Colors.dark.background : Colors.light.background;
+
   const labelColor =
     variant === 'primary'
-      ? Colors.dark.background
+      ? primaryText
       : variant === 'secondary'
-      ? Colors.dark.textPrimary
-      : Colors.dark.textSecondary;
+      ? colors.textPrimary
+      : colors.textSecondary;
 
   return (
     <Pressable
@@ -56,8 +62,8 @@ export default function Button({
         style={[
           animatedStyle,
           styles.base,
-          variant === 'primary' && styles.primary,
-          variant === 'secondary' && styles.secondary,
+          variant === 'primary' && [styles.primary, { backgroundColor: primaryBg }],
+          variant === 'secondary' && [styles.secondary, { backgroundColor: colors.surface, borderColor: colors.border }],
           (disabled || loading) && styles.disabled,
           style,
         ]}
@@ -74,7 +80,7 @@ export default function Button({
 
 const styles = StyleSheet.create({
   base: {
-    height: 56,
+    height: 36,
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',

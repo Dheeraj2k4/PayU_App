@@ -9,6 +9,7 @@ import { formatAmount } from '../../utils/currency';
 import { Colors } from '../../constants/theme';
 import { FontFamily } from '../../constants/typography';
 import { useTheme } from '../../hooks';
+import { getServiceIcon, BillsIcon } from '../common/ServiceIcons';
 
 // ─── Category icon map (same as AddTransactionSheet) ─────────────────────────
 
@@ -45,13 +46,24 @@ interface Props {
 }
 
 export default function TransactionItem({ transaction, onDelete }: Props) {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const swipeableRef = useRef<Swipeable>(null);
   const cat = getCategoryById(transaction.categoryId);
   const isIncome = transaction.type === 'income';
   const iconName = CATEGORY_ICONS[transaction.categoryId] ?? 'dots-horizontal';
   const label = transaction.note?.trim() || cat.label;
   const subtitle = isIncome ? 'Income' : 'Expense';
+
+  // For recurring Spotify subscriptions, use green icon background
+  const iconBgColor = transaction.isRecurring && label.toLowerCase().includes('spotify')
+    ? '#1DB954'
+    : cat.color;
+
+  const iconEl = transaction.isRecurring
+    ? getServiceIcon(label, cat.color, 22)
+    : transaction.categoryId === 'bills'
+      ? <BillsIcon size={22} color={cat.color} />
+      : <MaterialCommunityIcons name={iconName} size={22} color={cat.color} />;
 
   const handleSwipeOpen = () => {
     if (onDelete) {
@@ -67,8 +79,8 @@ export default function TransactionItem({ transaction, onDelete }: Props) {
   const cardContent = (
     <View style={styles.inner}>
       {/* Icon */}
-      <View style={[styles.iconWrapper, { backgroundColor: `${cat.color}22` }]}>
-        <MaterialCommunityIcons name={iconName} size={22} color={cat.color} />
+      <View style={[styles.iconWrapper, { backgroundColor: `${iconBgColor}22` }]}>
+        {iconEl}
       </View>
 
       {/* Info */}
@@ -79,7 +91,7 @@ export default function TransactionItem({ transaction, onDelete }: Props) {
 
       {/* Amount badge */}
       <View style={[styles.amountBadge, { backgroundColor: colors.surfaceElevated }]}>
-        <Text style={[styles.amountText, { color: isIncome ? Colors.income : Colors.expense }]}>
+        <Text style={[styles.amountText, { color: colors.textPrimary }]}>
           {formatAmount(transaction.amount, transaction.type)}
         </Text>
       </View>
@@ -98,7 +110,9 @@ export default function TransactionItem({ transaction, onDelete }: Props) {
     >
       {isIncome ? (
         <LinearGradient
-          colors={['#192D29', '#262626', '#0A0A0A']}
+          colors={isDark
+            ? ['#192D29', '#262626', '#0A0A0A']
+            : ['#DDE6E3', '#C4D2CD', '#AABFB8']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.card}

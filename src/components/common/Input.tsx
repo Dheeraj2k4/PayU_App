@@ -11,6 +11,7 @@ import {
 import Svg, { Path, Circle } from 'react-native-svg';
 import { Colors } from '../../constants/theme';
 import { FontFamily } from '../../constants/typography';
+import { useTheme } from '../../hooks';
 
 interface InputProps extends Omit<TextInputProps, 'style'> {
   label?: string;
@@ -77,14 +78,18 @@ export default function Input({
   ...rest
 }: InputProps) {
   const [secure, setSecure] = useState(isPassword);
+  const { colors, isDark } = useTheme();
 
   return (
     <View style={[styles.container, containerStyle]}>
-      {label ? <Text style={styles.label}>{label}</Text> : null}
-      <View style={styles.inputWrapper}>
+      {label ? <Text style={[styles.label, { color: colors.textPrimary }]}>{label}</Text> : null}
+      <View style={[styles.inputWrapper, {
+        backgroundColor: isDark ? '#262626' : colors.surfaceElevated,
+        borderColor: colors.border,
+      }]}>
         <TextInput
-          style={styles.input}
-          placeholderTextColor={Colors.dark.textMuted}
+          style={[styles.input, { color: colors.textPrimary }]}
+          placeholderTextColor={isDark ? '#A1A1A1' : colors.textMuted}
           secureTextEntry={secure}
           autoCapitalize="none"
           {...rest}
@@ -111,24 +116,24 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.medium,
     fontSize: 14,
     lineHeight: 20,
-    color: Colors.dark.textPrimary,
   },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.dark.surface,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: Colors.dark.border,
     paddingHorizontal: 16,
-    height: 52,
+    height: 36,
   },
   input: {
     flex: 1,
     fontFamily: FontFamily.regular,
-    fontSize: 15,
-    color: Colors.dark.textPrimary,
-    height: '100%',
+    fontSize: 16,
+    lineHeight: 16,
+    letterSpacing: -0.31,
+    paddingVertical: 0,
+    textAlignVertical: 'center',
+    includeFontPadding: false,
   },
   eyeButton: {
     paddingLeft: 8,

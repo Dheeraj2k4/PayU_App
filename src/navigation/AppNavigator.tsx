@@ -33,7 +33,11 @@ export default function AppNavigator() {
         initialRouteName="Auth"
       >
         <Stack.Screen name="Auth" component={AuthScreen} />
-        <Stack.Screen name="Main" component={BottomTabNavigator} />
+        <Stack.Screen
+          name="Main"
+          component={BottomTabNavigator}
+          options={{ animation: 'fade' }}
+        />
         <Stack.Screen
           name="Search"
           component={SearchScreen}

@@ -66,6 +66,6 @@ const styles = StyleSheet.create({
     fontFamily: FontFamily.semiBold,
     fontSize: 14,
     lineHeight: 20,
-    color: Colors.dark.textSecondary,
+    color: Colors.dark.textPrimary,
   },
 });

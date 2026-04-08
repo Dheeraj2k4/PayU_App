@@ -18,6 +18,7 @@ import { formatDisplayDate } from '../../utils/date';
 import { getCategoryById } from '../../constants/categories';
 import { Transaction } from '../../types';
 import { useTheme } from '../../hooks';
+import { getServiceIcon, BillsIcon } from '../../components/common/ServiceIcons';
 
 const CATEGORY_ICONS: Record<string, React.ComponentProps<typeof MaterialCommunityIcons>['name']> = {
   food: 'food-fork-drink',
@@ -32,22 +33,30 @@ const CATEGORY_ICONS: Record<string, React.ComponentProps<typeof MaterialCommuni
 };
 
 function TransactionRow({ tx }: { tx: Transaction }) {
+  const { colors } = useTheme();
   const cat = getCategoryById(tx.categoryId);
   const isIncome = tx.type === 'income';
+  const label = tx.note?.trim() || cat.label;
+
+  const isSpotify = tx.isRecurring && label.toLowerCase().includes('spotify');
+  const iconBg = isSpotify ? '#1DB954' : `${cat.color}22`;
+
+  const iconEl = tx.isRecurring
+    ? getServiceIcon(label, cat.color, 20)
+    : tx.categoryId === 'bills'
+      ? <BillsIcon size={20} color={cat.color} />
+      : <MaterialCommunityIcons name={CATEGORY_ICONS[tx.categoryId] ?? 'dots-horizontal'} size={20} color={cat.color} />;
+
   return (
-    <View style={styles.row}>
-      <View style={[styles.rowIcon, { backgroundColor: `${cat.color}20` }]}>
-        <MaterialCommunityIcons
-          name={CATEGORY_ICONS[tx.categoryId] ?? 'dots-horizontal'}
-          size={20}
-          color={cat.color}
-        />
+    <View style={[styles.row, { borderBottomColor: colors.border }]}>
+      <View style={[styles.rowIcon, { backgroundColor: iconBg }]}>
+        {iconEl}
       </View>
       <View style={styles.rowInfo}>
-        <Text style={styles.rowTitle} numberOfLines={1}>
-          {tx.note || cat.label}
+        <Text style={[styles.rowTitle, { color: colors.textPrimary }]} numberOfLines={1}>
+          {label}
         </Text>
-        <Text style={styles.rowDate}>{formatDisplayDate(tx.date)}</Text>
+        <Text style={[styles.rowDate, { color: colors.textSecondary }]}>{formatDisplayDate(tx.date)}</Text>
       </View>
       <Text style={[styles.rowAmount, { color: isIncome ? '#3BB9A1' : '#F87171' }]}>
         {isIncome ? '+' : '-'}{formatCurrency(tx.amount)}

@@ -58,32 +58,38 @@ export default function HomeHeader({
   onSearchPress,
   onNotificationPress,
 }: HomeHeaderProps) {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
+  const logoBg = isDark ? Colors.light.background : Colors.dark.background;
+  const logoTextColor = isDark ? Colors.dark.background : Colors.light.background;
 
   return (
-    <View style={styles.container}>
-      {/* Logo + App name */}
-      <View style={styles.logoRow}>
-        <View style={styles.logoBox}>
-          <Text style={styles.logoLetter}>P</Text>
+    <View>
+      <View style={styles.container}>
+        {/* Logo + App name */}
+        <View style={styles.logoRow}>
+          <View style={[styles.logoBox, { backgroundColor: logoBg }]}>
+            <Text style={[styles.logoLetter, { color: logoTextColor }]}>P</Text>
+          </View>
+          <Text style={[styles.appName, { color: colors.textPrimary }]}>PayU</Text>
         </View>
-        <Text style={[styles.appName, { color: colors.textPrimary }]}>PayU</Text>
-      </View>
 
-      {/* Actions */}
-      <View style={styles.actions}>
-        <TouchableOpacity onPress={onSearchPress} style={styles.iconBtn} activeOpacity={0.7}>
-          <SearchIcon color={colors.icon} />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={onNotificationPress} style={styles.iconBtn} activeOpacity={0.7}>
-          <BellIcon color={colors.icon} />
-          {notificationCount > 0 && (
+        {/* Actions */}
+        <View style={styles.actions}>
+          <TouchableOpacity onPress={onSearchPress} style={styles.iconBtn} activeOpacity={0.7}>
+            <SearchIcon color={colors.icon} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={onNotificationPress} style={styles.iconBtn} activeOpacity={0.7}>
+            <BellIcon color={colors.icon} />
+            {notificationCount > 0 && (
             <View style={styles.badge}>
               <Text style={styles.badgeText}>{notificationCount}</Text>
             </View>
-          )}
-        </TouchableOpacity>
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
+      {/* Full-width divider */}
+      <View style={[styles.divider, { backgroundColor: colors.border }]} />
     </View>
   );
 }
@@ -105,14 +111,12 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 10,
-    backgroundColor: Colors.light.background,
     alignItems: 'center',
     justifyContent: 'center',
   },
   logoLetter: {
     fontFamily: FontFamily.bold,
     fontSize: 17,
-    color: Colors.dark.background,
     lineHeight: 22,
   },
   appName: {
@@ -148,5 +152,8 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: '#FFFFFF',
     lineHeight: 14,
+  },
+  divider: {
+    height: 1,
   },
 });

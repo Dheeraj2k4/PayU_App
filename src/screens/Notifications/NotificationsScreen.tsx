@@ -1,13 +1,15 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import {
   View,
   Text,
   ScrollView,
   TouchableOpacity,
   StyleSheet,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { Swipeable } from 'react-native-gesture-handler';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTransactionContext } from '../../store';
 import { Colors } from '../../constants/theme';
@@ -15,6 +17,7 @@ import { FontFamily, Typography } from '../../constants/typography';
 import { formatCurrency } from '../../utils/currency';
 import { getCategoryById } from '../../constants/categories';
 import { useTheme } from '../../hooks';
+import { getServiceIcon, BillsIcon } from '../../components/common/ServiceIcons';
 
 const CATEGORY_ICONS: Record<string, React.ComponentProps<typeof MaterialCommunityIcons>['name']> = {
   food: 'food-fork-drink',
@@ -36,13 +39,14 @@ interface Notification {
   amount: number;
   daysUntilDue: number;
   color: string;
-  icon: React.ComponentProps<typeof MaterialCommunityIcons>['name'];
+  categoryId: string;
+  isRecurring: boolean;
 }
 
 function urgencyColor(days: number): string {
-  if (days < 0) return '#F87171';   // overdue — red
-  if (days <= 3) return '#FBDE9D';  // due soon — yellow
-  return '#3BB9A1';                 // upcoming — teal
+  if (days < 0) return '#F87171';
+  if (days <= 3) return '#FBDE9D';
+  return '#3BB9A1';
 }
 
 function urgencyLabel(days: number): string {
@@ -52,32 +56,40 @@ function urgencyLabel(days: number): string {
   return `Due in ${days} days`;
 }
 
+function DeleteAction({ progress }: { progress: Animated.AnimatedInterpolation<number> }) {
+  const scale = progress.interpolate({ inputRange: [0, 1], outputRange: [0.7, 1] });
+  return (
+    <View style={styles.deleteAction}>
+      <Animated.View style={{ transform: [{ scale }] }}>
+        <MaterialCommunityIcons name="trash-can-outline" size={26} color="#fff" />
+      </Animated.View>
+    </View>
+  );
+}
+
 export default function NotificationsScreen() {
   const navigation = useNavigation();
-  const { transactions } = useTransactionContext();
+  const { transactions, deleteTransaction } = useTransactionContext();
   const { colors } = useTheme();
+  const [dismissed, setDismissed] = useState<Set<string>>(new Set());
 
   const notifications = useMemo<Notification[]>(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
     return transactions
-      .filter((tx) => tx.isRecurring && tx.type === 'expense')
+      .filter((tx) => tx.isRecurring && tx.type === 'expense' && !dismissed.has(tx.id))
       .map((tx) => {
         const txDate = new Date(tx.date);
         txDate.setHours(0, 0, 0, 0);
-
-        // Project next due date based on frequency
         const next = new Date(txDate);
         while (next <= today) {
           if (tx.recurringFrequency === 'weekly') next.setDate(next.getDate() + 7);
           else if (tx.recurringFrequency === 'yearly') next.setFullYear(next.getFullYear() + 1);
-          else next.setMonth(next.getMonth() + 1); // monthly default
+          else next.setMonth(next.getMonth() + 1);
         }
-
         const daysUntil = Math.round((next.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
         const cat = getCategoryById(tx.categoryId);
-
         return {
           id: tx.id,
           type: daysUntil < 0 ? 'bill_overdue' : 'bill_due',
@@ -86,11 +98,16 @@ export default function NotificationsScreen() {
           amount: tx.amount,
           daysUntilDue: daysUntil,
           color: urgencyColor(daysUntil),
-          icon: CATEGORY_ICONS[tx.categoryId] ?? 'receipt',
+          categoryId: tx.categoryId,
+          isRecurring: !!tx.isRecurring,
         } as Notification;
       })
       .sort((a, b) => a.daysUntilDue - b.daysUntilDue);
-  }, [transactions]);
+  }, [transactions, dismissed]);
+
+  const handleDismiss = useCallback((id: string) => {
+    setDismissed((prev) => new Set([...prev, id]));
+  }, []);
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['top']}>
@@ -113,18 +130,38 @@ export default function NotificationsScreen() {
         ) : (
           <>
             <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>Upcoming Bills</Text>
-            {notifications.map((n) => (
-              <View key={n.id} style={[styles.card, { borderLeftColor: n.color, backgroundColor: colors.surface }]}>
-                <View style={[styles.iconBox, { backgroundColor: `${n.color}20` }]}>
-                  <MaterialCommunityIcons name={n.icon} size={22} color={n.color} />
-                </View>
-                <View style={styles.info}>
-                  <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>{n.title}</Text>
-                  <Text style={[styles.cardBody, { color: n.color }]}>{n.body}</Text>
-                </View>
-                <Text style={styles.amount}>{formatCurrency(n.amount)}</Text>
-              </View>
-            ))}
+            {notifications.map((n) => {
+              const iconEl = n.isRecurring
+                ? getServiceIcon(n.title, n.color, 22)
+                : n.categoryId === 'bills'
+                  ? <BillsIcon size={22} color={n.color} />
+                  : <MaterialCommunityIcons name={CATEGORY_ICONS[n.categoryId] ?? 'receipt'} size={22} color={n.color} />;
+
+              return (
+                <Swipeable
+                  key={n.id}
+                  friction={2}
+                  leftThreshold={60}
+                  rightThreshold={60}
+                  renderLeftActions={(p) => <DeleteAction progress={p} />}
+                  renderRightActions={(p) => <DeleteAction progress={p} />}
+                  onSwipeableOpen={() => handleDismiss(n.id)}
+                >
+                  <View style={[styles.card, { backgroundColor: colors.surface }]}>
+                    <View style={[styles.iconBox, { backgroundColor: `${n.color}22` }]}>
+                      {iconEl}
+                    </View>
+                    <View style={styles.info}>
+                      <Text style={[styles.cardTitle, { color: colors.textPrimary }]}>{n.title}</Text>
+                      <Text style={[styles.cardBody, { color: colors.textSecondary }]}>{n.body}</Text>
+                    </View>
+                    <View style={[styles.amountBadge, { backgroundColor: colors.surfaceElevated }]}>
+                      <Text style={[styles.amountText, { color: n.color }]}>{formatCurrency(n.amount)}</Text>
+                    </View>
+                  </View>
+                </Swipeable>
+              );
+            })}
           </>
         )}
       </ScrollView>
@@ -172,16 +209,16 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
+    gap: 12,
     backgroundColor: Colors.dark.surface,
-    borderRadius: 14,
-    padding: 16,
-    borderLeftWidth: 3,
+    borderRadius: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
   },
   iconBox: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
+    width: 46,
+    height: 46,
+    borderRadius: 23,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -190,18 +227,25 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   cardTitle: {
-    fontFamily: FontFamily.semiBold,
+    fontFamily: FontFamily.bold,
     fontSize: 14,
+    lineHeight: 20,
+    letterSpacing: 0.3,
     color: Colors.dark.textPrimary,
   },
   cardBody: {
     fontFamily: FontFamily.regular,
     fontSize: 12,
+    lineHeight: 16,
   },
-  amount: {
-    fontFamily: FontFamily.bold,
-    fontSize: 15,
-    color: Colors.dark.textPrimary,
+  amountBadge: {
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
+  amountText: {
+    fontFamily: FontFamily.semiBold,
+    fontSize: 14,
   },
   empty: {
     flex: 1,
@@ -220,5 +264,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.dark.textSecondary,
     textAlign: 'center',
+  },
+  deleteAction: {
+    flex: 1,
+    borderRadius: 16,
+    backgroundColor: Colors.error,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
   },
 });
