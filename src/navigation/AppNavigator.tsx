@@ -2,12 +2,14 @@ import React from 'react';
 import { NavigationContainer, DarkTheme, DefaultTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AuthScreen from '../screens/Auth/AuthScreen';
+import SplashScreen from '../screens/Splash/SplashScreen';
 import BottomTabNavigator from './BottomTabNavigator';
 import SearchScreen from '../screens/Search/SearchScreen';
 import NotificationsScreen from '../screens/Notifications/NotificationsScreen';
 import { useThemeContext } from '../store';
 
 export type RootStackParamList = {
+  Splash: undefined;
   Auth: undefined;
   Main: undefined;
   Search: undefined;
@@ -30,8 +32,9 @@ export default function AppNavigator() {
           headerShown: false,
           contentStyle: { backgroundColor: colors.background },
         }}
-        initialRouteName="Auth"
+        initialRouteName="Splash"
       >
+        <Stack.Screen name="Splash" component={SplashScreen} options={{ animation: 'none' }} />
         <Stack.Screen name="Auth" component={AuthScreen} />
         <Stack.Screen
           name="Main"
