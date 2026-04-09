@@ -22,7 +22,7 @@ export default function AuthTabSwitcher({ activeTab, onTabChange }: AuthTabSwitc
       options={OPTIONS}
       value={activeTab}
       onChange={onTabChange}
-      trackColor={isDark ? '#262626' : Colors.light.background}
+      trackColor={isDark ? '#262626' : Colors.light.surfaceElevated}
       pillColor={isDark ? Colors.light.background : Colors.dark.background}
       activeTextColor={isDark ? Colors.dark.background : Colors.light.background}
     />

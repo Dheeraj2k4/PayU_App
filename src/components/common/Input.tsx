@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontFamily: FontFamily.regular,
     fontSize: 16,
-    lineHeight: 16,
+    lineHeight: 20,
     letterSpacing: -0.31,
     paddingVertical: 0,
     textAlignVertical: 'center',

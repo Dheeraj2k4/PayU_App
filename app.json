@@ -4,11 +4,11 @@
     "slug": "FinanceManager",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/appicon/Screenshot 2026-04-08 225849.png",
+    "icon": "./assets/appicon/app_icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/appicon/Screenshot 2026-04-08 225849.png",
+      "image": "./assets/appicon/app_icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#0A0A0A"
     },
@@ -17,7 +17,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/appicon/Screenshot 2026-04-08 225849.png",
+        "foregroundImage": "./assets/appicon/app_icon.png",
         "backgroundColor": "#0A0A0A"
       },
       "edgeToEdgeEnabled": true,
@@ -25,7 +25,7 @@
       "package": "com.dheerxj1.FinanceManager"
     },
     "web": {
-      "favicon": "./assets/appicon/Screenshot 2026-04-08 225849.png"
+      "favicon": "./assets/appicon/app_icon.png"
     },
     "plugins": [
       "expo-font"

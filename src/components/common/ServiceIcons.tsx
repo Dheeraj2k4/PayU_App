@@ -14,16 +14,27 @@ export function SpotifyIcon({ size = 22 }: { size?: number }) {
 
 export function NetflixIcon({ size = 22 }: { size?: number }) {
   return (
-    <Svg viewBox="-49.6 0 222 222" width={size} height={size}>
-      <G transform="translate(12.495, 6.756)">
-        <G transform="translate(81.631, 113.771) scale(0.29074)">
-          <Path
-            fill="#e50914"
-            d="M-322-412.8l150.5 426.5v-.2l11.9 33.6C-93.5 234.2-58 334.6-57.8 334.8c.1.1 10.1.7 22.2 1.3 36.6 1.8 82 5.7 116.5 10 7.9 1 14.8 1.5 15.2 1.1L-53.1-76.4v.1l-13.8-39c-13.5-38.1-22.5-63.6-76.8-217-14.6-41.3-27-76.2-27.5-77.8l-1-2.8h-74.9l-74.9.1z"
-          />
-        </G>
-      </G>
-    </Svg>
+    <Svg
+  viewBox="75 0 262.944 480"
+  width={size}
+  height={size}
+>
+  {/* Left red bar */}
+  <Path
+    d="m216.398 16h-91.87v480c30.128-7.135 61.601-10.708 91.87-12.052z"
+    fill="#c20000"
+  />
+  {/* Right red bar */}
+  <Path
+    d="m387.472 496v-480h-91.87v468.904c53.636 3.416 91.87 11.096 91.87 11.096z"
+    fill="#c20000"
+  />
+  {/* Diagonal N stroke */}
+  <Path
+    d="m387.472 496-171.074-480h-91.87l167.03 468.655c55.75 3.276 95.914 11.345 95.914 11.345z"
+    fill="#fa0000"
+  />
+</Svg>
   );
 }
 

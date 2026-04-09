@@ -23,7 +23,6 @@ export default function BottomTabNavigator() {
         headerShown: false,
         lazy: false,
       }}
-      sceneContainerStyle={{ backgroundColor: '#000000' }}
       initialRouteName="Home"
     >
       <Tab.Screen name="Home"      component={HomeScreen} />

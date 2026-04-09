@@ -11,7 +11,6 @@ import {
 import {
   useSharedValue,
   withTiming,
-  useDerivedValue,
   Easing,
 } from 'react-native-reanimated';
 import { CategoryData } from './types';
@@ -48,19 +47,6 @@ function buildSliceGeo(data: CategoryData[], total: number): SliceGeo[] {
   });
 }
 
-function makeArcPath(geo: SliceGeo, prog: number) {
-  'worklet';
-  const sweep = geo.sweepDeg * prog;
-  if (sweep < 0.1) return Skia.Path.Make();
-  const path = Skia.Path.Make();
-  path.addArc(
-    { x: CX - RADIUS, y: CY - RADIUS, width: RADIUS * 2, height: RADIUS * 2 },
-    geo.startDeg,
-    sweep,
-  );
-  return path;
-}
-
 // ── Component ─────────────────────────────────────────────────────────────────
 
 interface DonutChartProps {
@@ -72,33 +58,30 @@ interface DonutChartProps {
 export default function DonutChart({ slices, total, triggerKey }: DonutChartProps) {
   const { colors } = useTheme();
 
+  // Single scalar SharedValue — no complex object serialization
   const progress = useSharedValue(0);
-  const geoData = useSharedValue<SliceGeo[]>([]);
 
+  // Compute all arc paths on the JS thread via useMemo — no worklets needed
+  const slicePaths = useMemo(() => {
+    const geos = buildSliceGeo(slices, total);
+    return geos.map((geo) => {
+      if (geo.sweepDeg < 0.5) return null;
+      const path = Skia.Path.Make();
+      path.addArc(
+        { x: CX - RADIUS, y: CY - RADIUS, width: RADIUS * 2, height: RADIUS * 2 },
+        geo.startDeg,
+        geo.sweepDeg,
+      );
+      return path;
+    });
+  }, [slices, total]);
+
+  // Re-run the draw-on animation whenever data changes
   useEffect(() => {
-    geoData.value = buildSliceGeo(slices, total);
     progress.value = 0;
     progress.value = withTiming(1, { duration: 900, easing: Easing.out(Easing.cubic) });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [triggerKey]);
-
-  const font = useFont(require('../../../assets/fonts/Inter_700Bold.ttf'), 22);
-  const smallFont = useFont(require('../../../assets/fonts/Inter_400Regular.ttf'), 12);
-
-  // Fixed-count derived paths — max 9 categories. Avoids hooks-in-loop violation.
-  /* eslint-disable react-hooks/rules-of-hooks */
-  const p0 = useDerivedValue(() => { const g = geoData.value[0]; return g ? makeArcPath(g, progress.value) : Skia.Path.Make(); });
-  const p1 = useDerivedValue(() => { const g = geoData.value[1]; return g ? makeArcPath(g, progress.value) : Skia.Path.Make(); });
-  const p2 = useDerivedValue(() => { const g = geoData.value[2]; return g ? makeArcPath(g, progress.value) : Skia.Path.Make(); });
-  const p3 = useDerivedValue(() => { const g = geoData.value[3]; return g ? makeArcPath(g, progress.value) : Skia.Path.Make(); });
-  const p4 = useDerivedValue(() => { const g = geoData.value[4]; return g ? makeArcPath(g, progress.value) : Skia.Path.Make(); });
-  const p5 = useDerivedValue(() => { const g = geoData.value[5]; return g ? makeArcPath(g, progress.value) : Skia.Path.Make(); });
-  const p6 = useDerivedValue(() => { const g = geoData.value[6]; return g ? makeArcPath(g, progress.value) : Skia.Path.Make(); });
-  const p7 = useDerivedValue(() => { const g = geoData.value[7]; return g ? makeArcPath(g, progress.value) : Skia.Path.Make(); });
-  const p8 = useDerivedValue(() => { const g = geoData.value[8]; return g ? makeArcPath(g, progress.value) : Skia.Path.Make(); });
-  /* eslint-enable react-hooks/rules-of-hooks */
-
-  const allPaths = [p0, p1, p2, p3, p4, p5, p6, p7, p8];
 
   const bgPath = useMemo(() => {
     const p = Skia.Path.Make();
@@ -106,7 +89,9 @@ export default function DonutChart({ slices, total, triggerKey }: DonutChartProp
     return p;
   }, []);
 
-  // Center labels
+  const font = useFont(require('../../../assets/fonts/Inter_700Bold.ttf'), 22);
+  const smallFont = useFont(require('../../../assets/fonts/Inter_400Regular.ttf'), 12);
+
   const totalText = total > 0 ? formatCurrency(total) : '';
   const subText = total > 0
     ? `${slices.length} categor${slices.length === 1 ? 'y' : 'ies'}`
@@ -129,18 +114,19 @@ export default function DonutChart({ slices, total, triggerKey }: DonutChartProp
           color={colors.border}
         />
 
-        {/* Colored animated slices */}
-        {allPaths.map((path, i) => {
-          const color = slices[i]?.color;
-          if (!color) return null;
+        {/* Colored slices — start/end trimming drives the draw-on animation */}
+        {slicePaths.map((path, i) => {
+          if (!path) return null;
           return (
             <Path
-              key={i}
+              key={`slice-${i}`}
               path={path}
               style="stroke"
               strokeWidth={STROKE_W}
               strokeCap="round"
-              color={color}
+              color={slices[i].color}
+              start={0}
+              end={progress}
             />
           );
         })}

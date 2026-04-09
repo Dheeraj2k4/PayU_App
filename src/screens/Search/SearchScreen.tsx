@@ -39,7 +39,7 @@ function TransactionRow({ tx }: { tx: Transaction }) {
   const label = tx.note?.trim() || cat.label;
 
   const isSpotify = tx.isRecurring && label.toLowerCase().includes('spotify');
-  const iconBg = isSpotify ? '#1DB954' : `${cat.color}22`;
+  const iconBg = isSpotify ? '#173b24' : `${cat.color}22`;
 
   const iconEl = tx.isRecurring
     ? getServiceIcon(label, cat.color, 20)
