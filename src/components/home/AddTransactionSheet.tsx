@@ -34,7 +34,7 @@ import { PREDEFINED_CATEGORIES } from '../../constants/categories';
 import { useTransactionContext } from '../../store';
 import { todayISO } from '../../utils/date';
 import { TransactionType } from '../../types';
-import { getServiceIcon } from '../common/ServiceIcons';
+import { getServiceIcon, BillsIcon } from '../common/ServiceIcons';
 import { useTheme } from '../../hooks';
 
 // -- Types ---------------------------------------------------------------------
@@ -159,9 +159,6 @@ function DatePickerField({ value, onChange }: { value: string; onChange: (d: str
 
   const displayLabel = (() => {
     if (value === today) return 'Today';
-    const d = new Date(todayDate);
-    d.setDate(d.getDate() - 1);
-    if (value === d.toISOString().split('T')[0]) return 'Yesterday';
     return new Date(value + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   })();
 
@@ -350,11 +347,15 @@ function TransactionForm({ mode, onBack, onClose }: TxFormProps) {
                 onPress={() => setCategoryId(cat.id)}
                 activeOpacity={0.8}
               >
-                <MaterialCommunityIcons
-                  name={CATEGORY_ICONS[cat.id] ?? 'dots-horizontal'}
-                  size={15}
-                  color={active ? cat.color : colors.textSecondary}
-                />
+                {cat.id === 'bills' ? (
+                  <BillsIcon size={15} color={active ? cat.color : colors.textSecondary} />
+                ) : (
+                  <MaterialCommunityIcons
+                    name={CATEGORY_ICONS[cat.id] ?? 'dots-horizontal'}
+                    size={15}
+                    color={active ? cat.color : colors.textSecondary}
+                  />
+                )}
                 <Text style={[styles.categoryText, active && { color: cat.color }]}>{cat.label}</Text>
               </TouchableOpacity>
             );

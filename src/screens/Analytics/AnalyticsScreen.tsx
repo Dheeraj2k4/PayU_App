@@ -222,7 +222,7 @@ export default function AnalyticsScreen() {
               {activeTab === 'expenses' && (
                 <View style={[styles.card, { backgroundColor: colors.surface }]}>
                   <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Subscriptions</Text>
-                  <SubscriptionSection subscriptions={subscriptions} total={subscriptionTotal} />
+                  <SubscriptionSection subscriptions={subscriptions} />
                 </View>
               )}
             </>
